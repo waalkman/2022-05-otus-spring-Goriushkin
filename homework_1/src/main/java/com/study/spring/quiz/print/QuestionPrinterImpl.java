@@ -3,32 +3,30 @@ package com.study.spring.quiz.print;
 import com.study.spring.quiz.Constants;
 import com.study.spring.quiz.dto.Option;
 import com.study.spring.quiz.dto.Question;
-import java.io.PrintStream;
+import com.study.spring.quiz.io.LineWriter;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConsoleQuestionPrinter implements QuestionPrinter {
+@RequiredArgsConstructor
+public class QuestionPrinterImpl implements QuestionPrinter {
 
-  private final PrintStream printStream = new PrintStream(System.out);
+  private final LineWriter lineWriter;
 
   @Override
   public void printQuestion(Question question) {
-    printLine(Constants.QUESTION_DELIMITER);
-    printLine(question.getTitle());
+    lineWriter.writeLine(Constants.QUESTION_DELIMITER);
+    lineWriter.writeLine(question.getTitle());
     printOptions(question);
-    printLine(Constants.QUESTION_DELIMITER);
-  }
-
-  private void printLine(String line) {
-    printStream.println(line);
+    lineWriter.writeLine(Constants.QUESTION_DELIMITER);
   }
 
   private void printOptions(Question question) {
     if (!question.isFreeTextAnswer()) {
       List<Option> options = question.getOptions();
       for (int i = 1; i <= options.size(); i++) {
-        printLine(String.format("%d: %s", i, options.get(i - 1).getText()));
+        lineWriter.writeLine(String.format("%d: %s", i, options.get(i - 1).getText()));
       }
     }
   }

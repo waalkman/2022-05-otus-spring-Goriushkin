@@ -5,32 +5,29 @@ import static org.mockito.Mockito.when;
 import com.study.spring.quiz.dto.Option;
 import com.study.spring.quiz.dto.Question;
 import com.study.spring.quiz.exceptions.LoadQuestionsException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 public class QuestionLoaderTest {
 
-  @Mock
-  private Resource resource;
-  @InjectMocks
-  private ResourceQuestionLoader questionLoader;
+  @MockBean
+  private ResourceProvider resourceProvider;
+  @Autowired
+  private QuestionLoader questionLoader;
+  @Autowired
+  private QuestionsParser questionsParser;
 
   @Test
-  public void correct_questionsLoad_test() throws IOException {
-    when(resource.getInputStream()).thenReturn(getResourceStream("questions.csv"));
-
-    Collection<Question> actualQuestions = questionLoader.loadQuestions();
-
+  public void correct_questionsLoad_test() {
+    when(resourceProvider.getResource()).thenReturn(new ClassPathResource("questions.csv"));
+    Collection<Question> actualQuestions = questionsParser.parseRawQuestions(questionLoader.readRawQuestions());
     Assertions.assertEquals(expectedCorrectQuestions(), actualQuestions);
   }
 
@@ -54,12 +51,9 @@ public class QuestionLoaderTest {
   }
 
   @Test
-  public void incorrect_questionsLoad_test() throws IOException {
-    when(resource.getInputStream()).thenReturn(getResourceStream("no_answer_questions.csv"));
-    Assertions.assertThrows(LoadQuestionsException.class, () -> questionLoader.loadQuestions());
+  public void incorrect_questionsLoad_test() {
+    when(resourceProvider.getResource()).thenReturn(new ClassPathResource("no_answer_questions.csv"));
+    Assertions.assertThrows(LoadQuestionsException.class, () -> questionLoader.readRawQuestions());
   }
 
-  private InputStream getResourceStream(String resourceName) {
-    return getClass().getClassLoader().getResourceAsStream(resourceName);
-  }
 }
