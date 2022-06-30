@@ -1,19 +1,16 @@
 package com.study.spring.quiz;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
-@ComponentScan
-@Configuration
-@PropertySource("classpath:application.properties")
+@SpringBootApplication
 public class AppStarter {
 
   public static void main(String[] args) {
-    ApplicationContext context = new AnnotationConfigApplicationContext(AppStarter.class);
-    new AppRunner(context).run();
+    ApplicationContext ctx = SpringApplication.run(AppStarter.class, args);
+    AppRunner appRunner = ctx.getBean(AppRunner.class);
+    appRunner.run();
   }
 
 }

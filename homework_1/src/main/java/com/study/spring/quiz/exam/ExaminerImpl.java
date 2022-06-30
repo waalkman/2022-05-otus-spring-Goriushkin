@@ -3,36 +3,45 @@ package com.study.spring.quiz.exam;
 import com.study.spring.quiz.dto.Question;
 import com.study.spring.quiz.dto.QuestionResult;
 import com.study.spring.quiz.exceptions.IncorrectAnswerException;
+import com.study.spring.quiz.io.LineReader;
+import com.study.spring.quiz.io.LineWriter;
 import com.study.spring.quiz.print.QuestionPrinter;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
-public abstract class BaseExaminer implements Examiner {
+public class ExaminerImpl implements Examiner {
 
   private final QuestionPrinter questionPrinter;
   private final AnswerChecker answerChecker;
   private final AnswerFormatValidator answerFormatValidator;
+  private final MessageSource messageSource;
+  private final LineReader lineReader;
+  private final LineWriter lineWriter;
 
-  @Value("${test.pass.threshold}")
+  @Value("${test.passThreshold}")
   private String testPassThreshold;
-  @Value("${test.input.retry.threshold}")
+  @Value("${test.inputRetryThreshold}")
   private String testInputRetryThreshold;
 
   @Override
   public void examStudent(List<Question> questions) {
     printGreeting();
-    String name = readLine();
+    String name = lineReader.readLine();
     List<QuestionResult> testResult = executeTest(questions);
     long correctAnswerCount = countCorrectAnswers(testResult);
     printResult(correctAnswerCount, name);
   }
 
-  protected void printGreeting() {
-    printLine("For optioned questions print your response separated by space!");
-    printLine("Enter your name and surname:");
+  private void printGreeting() {
+    lineWriter.writeLine(messageSource.getMessage("greeting", null, Locale.getDefault()));
+    lineWriter.writeLine(messageSource.getMessage("user.name.request", null,  Locale.getDefault()));
   }
 
   private List<QuestionResult> executeTest(List<Question> questions) {
@@ -45,19 +54,15 @@ public abstract class BaseExaminer implements Examiner {
                     .collect(Collectors.toList());
   }
 
-  protected abstract void printLine(String line);
-
-  protected abstract String readLine();
-
   private String tryGetUserAnswer(Question question) {
     int retries = Integer.parseInt(testInputRetryThreshold);
     while (retries > 0) {
       try {
-        String userAnswer = readLine();
+        String userAnswer = lineReader.readLine();
         answerFormatValidator.validateAnswerFormat(question, userAnswer);
         return userAnswer;
       } catch (IncorrectAnswerException e) {
-        printLine(String.format("Incorrect input: %s. try again", e.getMessage()));
+        lineWriter.writeLine(String.format("Incorrect input: %s. try again", e.getMessage()));
         retries -= 1;
       }
     }
@@ -72,9 +77,9 @@ public abstract class BaseExaminer implements Examiner {
 
   private void printResult(long correctAnswerCount, String name) {
     if (correctAnswerCount >= Integer.parseInt(testPassThreshold)) {
-      printLine(String.format("Congratulations %s! You have passed the test", name));
+      lineWriter.writeLine(messageSource.getMessage("success.test.result", new String[]{name}, Locale.getDefault()));
     } else {
-      printLine(String.format("Congratulations %s! You have failed the test", name));
+      lineWriter.writeLine(messageSource.getMessage("failed.test.result", new String[]{name},  Locale.getDefault()));
     }
   }
 }
