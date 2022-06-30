@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class QuestionsParserImpl implements QuestionsParser {
 
+  @Override
   public List<Question> parseRawQuestions(List<List<String>> rawQuestions) {
     return rawQuestions.stream()
                        .map(this::parseQuestion)
