@@ -9,8 +9,6 @@ public class AppStarter {
 
   public static void main(String[] args) {
     ApplicationContext ctx = SpringApplication.run(AppStarter.class, args);
-    AppRunner appRunner = ctx.getBean(AppRunner.class);
-    appRunner.run();
   }
 
 }

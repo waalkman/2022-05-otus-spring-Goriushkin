@@ -24,6 +24,7 @@ public class ExaminerImpl implements Examiner {
   private final MessageSource messageSource;
   private final LineReader lineReader;
   private final LineWriter lineWriter;
+  private final UserNameHolder userNameHolder;
 
   @Value("${test.passThreshold}")
   private String testPassThreshold;
@@ -33,15 +34,13 @@ public class ExaminerImpl implements Examiner {
   @Override
   public void examStudent(List<Question> questions) {
     printGreeting();
-    String name = lineReader.readLine();
     List<QuestionResult> testResult = executeTest(questions);
     long correctAnswerCount = countCorrectAnswers(testResult);
-    printResult(correctAnswerCount, name);
+    printResult(correctAnswerCount, userNameHolder.getName());
   }
 
   private void printGreeting() {
-    lineWriter.writeLine(messageSource.getMessage("greeting", null, Locale.getDefault()));
-    lineWriter.writeLine(messageSource.getMessage("user.name.request", null,  Locale.getDefault()));
+    lineWriter.writeLine(messageSource.getMessage("test.rules", null, Locale.getDefault()));
   }
 
   private List<QuestionResult> executeTest(List<Question> questions) {
