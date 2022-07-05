@@ -1,9 +1,9 @@
 package com.study.spring.quiz.load;
 
+import com.study.spring.quiz.config.ResourceConfig;
+import com.study.spring.quiz.io.ResourceExistenceChecker;
 import java.io.File;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -11,13 +11,9 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class LocalizedResourcePathProvider implements ResourcePathProvider {
 
-  private final LanguageProviderImpl languageProvider;
-  @Value("${questions.fileName}")
-  private String resourceFileName;
-
-  private String constructLocalizedResourcePathCandidate() {
-    return languageProvider.getLanguage() + File.separator + resourceFileName;
-  }
+  private final LanguageProvider languageProvider;
+  private final ResourceConfig resourceConfig;
+  private final ResourceExistenceChecker resourceExistenceChecker;
 
   @Override
   public String getLocalizedResourcePath() {
@@ -25,12 +21,16 @@ public class LocalizedResourcePathProvider implements ResourcePathProvider {
     if (StringUtils.hasLength(languageProvider.getLanguage()) && resourceExists(localizedResourcePathCandidate)) {
       return localizedResourcePathCandidate;
     } else {
-      return "default" + File.separator + resourceFileName;
+      return "default" + File.separator + resourceConfig.getFileName();
     }
   }
 
+  private String constructLocalizedResourcePathCandidate() {
+    return languageProvider.getLanguage() + File.separator + resourceConfig.getFileName();
+  }
+
   private boolean resourceExists(String resourcePath) {
-    return new ClassPathResource(resourcePath).isReadable();
+    return resourceExistenceChecker.resourceExists(resourcePath);
   }
 
 }

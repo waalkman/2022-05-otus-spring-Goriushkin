@@ -1,0 +1,14 @@
+questions:
+  fileName: questions.csv
+test:
+  passThreshold: 3
+  inputRetryThreshold: 3
+logging:
+  level:
+    root: info
+spring:
+  shell:
+    interactive:
+      enabled: false
+  main:
+    allow-circular-references: true
