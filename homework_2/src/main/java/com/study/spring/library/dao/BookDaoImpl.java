@@ -1,11 +1,15 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.exceptions.DataQueryException;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -20,30 +24,36 @@ public class BookDaoImpl implements BookDao {
 
   @Override
   public Collection<Book> getAll() {
-    return jdbc.query("select id, title, description, genre_id, author_id from books", new BookMapper());
+    try {
+      return jdbc.query("select id, title, description, genre_id, author_id from books", new BookMapper());
+    } catch (DataAccessException e) {
+      throw new DataQueryException("Cannot get all books", e);
+    }
   }
 
   @Override
   public void create(Book book) {
-    jdbcOperations.update(
-        "insert into books (title, description, genre_id, author_id) values (:title, :description, :genreId, :authorId)",
-        Map.of(
-            "title", book.getTitle(),
-            "description", book.getDescription(),
-            "genreId", book.getGenreId(),
-            "authorId", book.getAuthorId()));
+    try {
+      jdbcOperations.update(
+          "insert into books (title, description, genre_id, author_id) values (:title, :description, :genreId, :authorId)",
+          Map.of(
+              "title", book.getTitle(),
+              "description", book.getDescription(),
+              "genreId", book.getGenreId(),
+              "authorId", book.getAuthorId()));
+    } catch (DataAccessException e) {
+      throw new DataQueryException("Cannot create book", e);
+    }
   }
 
   @Override
   public Book getById(Long id) {
-    return jdbcOperations.queryForObject(
-        "select id, title, description, genre_id, author_id from books where id = :id",
-        Map.of("id", id),
-        new BookMapper());
+    return findById(id);
   }
 
   @Override
   public void update(Book book) {
+    findById(book.getId());
     jdbcOperations.update(
         "update books set title = :title, description = :description, genre_id = :genreId, author_id = :authorId where id = :id",
         Map.of("id", book.getId(),
@@ -55,7 +65,24 @@ public class BookDaoImpl implements BookDao {
 
   @Override
   public void deleteById(Long id) {
-    jdbcOperations.update("delete from books where id = :id", Map.of("id", id));
+    try {
+      jdbcOperations.update("delete from books where id = :id", Map.of("id", id));
+    } catch (DataAccessException e) {
+      throw new DataQueryException("Cannot delete book", e);
+    }
+  }
+
+  private Book findById(Long id) {
+    try {
+      return jdbcOperations.queryForObject(
+          "select id, title, description, genre_id, author_id from books where id = :id",
+          Map.of("id", id),
+          new BookMapper());
+    } catch (IncorrectResultSizeDataAccessException e) {
+      throw new EntityNotFoundException("Book not found", e);
+    } catch (DataAccessException e) {
+      throw new DataQueryException("Cannot get book by id", e);
+    }
   }
 
   private static class BookMapper implements RowMapper<Book> {

@@ -1,8 +1,6 @@
 package com.study.spring.library.io;
 
 import com.study.spring.library.domain.Author;
-import java.util.Collection;
-import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,14 +14,12 @@ public class AuthorPrinter extends Printer<Author> {
   }
 
   @Override
-  public void print(@NotNull Author author) {
+  protected void printHeader() {
     lineWriter.writeLine(HEADER);
-    lineWriter.writeLine(String.format(PATTERN, author.getId(), author.getName()));
   }
 
   @Override
-  public void print(@NotNull Collection<Author> authors) {
-    lineWriter.writeLine(HEADER);
-    authors.forEach(author -> lineWriter.writeLine(String.format(PATTERN, author.getId(), author.getName())));
+  protected void printSingleEntity(Author author) {
+    lineWriter.writeLine(String.format(PATTERN, author.getId(), author.getName()));
   }
 }

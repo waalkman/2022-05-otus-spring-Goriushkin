@@ -3,13 +3,17 @@ package com.study.spring.library.shell;
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.GenreDao;
+import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
-import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.io.Printer;
+import com.study.spring.library.io.UserInputReaderImpl;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,17 +30,21 @@ public class BookUserApi extends BaseUserApi {
   private final BookDao bookDao;
   private final GenreDao genreDao;
   private final AuthorDao authorDao;
+  private final Printer<Book> bookPrinter;
 
   public BookUserApi(
-      UserInputReader userInputReader,
+      UserInputReaderImpl userInputReader,
       LineWriter lineWriter,
       BookDao bookDao,
-      GenreDao genreDao, AuthorDao authorDao) {
+      GenreDao genreDao,
+      AuthorDao authorDao,
+      Printer<Book> bookPrinter) {
 
     super(userInputReader, lineWriter);
     this.bookDao = bookDao;
     this.genreDao = genreDao;
     this.authorDao = authorDao;
+    this.bookPrinter = bookPrinter;
   }
 
   @Override
@@ -46,6 +54,17 @@ public class BookUserApi extends BaseUserApi {
 
   @Override
   protected void runOperation(String operation) {
+    try {
+      chooseOperation(operation);
+    } catch (EntityNotFoundException ex) {
+      lineWriter.writeLine("Book(s) not found");
+    } catch (DataAccessException e) {
+      lineWriter.writeLine(String.format("Error executing operation %s", e.getMessage()));
+    }
+  }
+
+  @Override
+  protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
         update();
@@ -56,7 +75,7 @@ public class BookUserApi extends BaseUserApi {
       case "getAll":
         getAll();
         break;
-      case "getByid":
+      case "getById":
         getByid();
         break;
       case "deleteById":
@@ -103,15 +122,14 @@ public class BookUserApi extends BaseUserApi {
 
   public void getAll() {
     lineWriter.writeLine("All books:");
-    lineWriter.writeLine(bookDao.getAll().toString());
+    bookPrinter.print(bookDao.getAll());
   }
 
   private void getByid() {
     lineWriter.writeLine("Enter book id:");
     long id = userInputReader.readLongFromLine();
     Book book = bookDao.getById(id);
-    lineWriter.writeLine("Result:");
-    lineWriter.writeLine(book.toString());
+    bookPrinter.print(book);
   }
 
   private void deleteById() {

@@ -1,8 +1,6 @@
 package com.study.spring.library.io;
 
 import com.study.spring.library.domain.Genre;
-import java.util.Collection;
-import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,14 +14,12 @@ public class GenrePrinter extends Printer<Genre> {
   }
 
   @Override
-  public void print(@NotNull Genre genre) {
-    lineWriter.writeLine(HEADER);
+  protected void printSingleEntity(Genre genre) {
     lineWriter.writeLine(String.format(PATTERN, genre.getId(), genre.getName()));
   }
 
   @Override
-  public void print(@NotNull Collection<Genre> genres) {
+  protected void printHeader() {
     lineWriter.writeLine(HEADER);
-    genres.forEach(author -> lineWriter.writeLine(String.format(PATTERN, author.getId(), author.getName())));
   }
 }

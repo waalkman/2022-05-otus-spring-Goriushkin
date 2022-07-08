@@ -1,14 +1,14 @@
 package com.study.spring.library.shell;
 
 import com.study.spring.library.io.LineWriter;
-import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.io.UserInputReaderImpl;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public abstract class BaseUserApi {
 
-  protected final UserInputReader userInputReader;
+  protected final UserInputReaderImpl userInputReader;
   protected final LineWriter lineWriter;
 
   public int chooseOptionMenu() {
@@ -28,6 +28,7 @@ public abstract class BaseUserApi {
   }
 
   protected abstract void runOperation(String operation);
+  protected abstract void chooseOperation(String operation);
   protected abstract Map<Integer, String> getOptions();
 
 }

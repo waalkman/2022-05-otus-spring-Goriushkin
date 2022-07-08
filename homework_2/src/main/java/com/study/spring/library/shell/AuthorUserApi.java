@@ -2,13 +2,16 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.AuthorPrinter;
 import com.study.spring.library.io.LineWriter;
-import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.io.Printer;
+import com.study.spring.library.io.UserInputReaderImpl;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,13 +26,13 @@ public class AuthorUserApi extends BaseUserApi {
   }
 
   private final AuthorDao authorDao;
-  private final AuthorPrinter authorPrinter;
+  private final Printer<Author> authorPrinter;
 
   public AuthorUserApi(
-      UserInputReader userInputReader,
+      UserInputReaderImpl userInputReader,
       LineWriter lineWriter,
       AuthorDao authorDao,
-      AuthorPrinter authorPrinter) {
+      Printer<Author> authorPrinter) {
 
     super(userInputReader, lineWriter);
     this.authorDao = authorDao;
@@ -43,6 +46,17 @@ public class AuthorUserApi extends BaseUserApi {
 
   @Override
   protected void runOperation(String operation) {
+    try {
+      chooseOperation(operation);
+    } catch (EntityNotFoundException ex) {
+      lineWriter.writeLine("Author(s) not found");
+    } catch (DataAccessException e) {
+      lineWriter.writeLine(String.format("Error executing operation %s", e.getMessage()));
+    }
+  }
+
+  @Override
+  protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
         update();

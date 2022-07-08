@@ -2,13 +2,15 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Genre;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
-import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.io.UserInputReaderImpl;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,7 +28,7 @@ public class GenreUserApi extends BaseUserApi {
   private final Printer<Genre> printer;
 
   public GenreUserApi(
-      UserInputReader userInputReader,
+      UserInputReaderImpl userInputReader,
       LineWriter lineWriter,
       GenreDao genreDao,
       Printer<Genre> printer) {
@@ -43,6 +45,17 @@ public class GenreUserApi extends BaseUserApi {
 
   @Override
   protected void runOperation(String operation) {
+    try {
+      chooseOperation(operation);
+    } catch (EntityNotFoundException ex) {
+      lineWriter.writeLine("Genre(s) not found");
+    } catch (DataAccessException e) {
+      lineWriter.writeLine(String.format("Error executing operation %s", e.getMessage()));
+    }
+  }
+
+  @Override
+  protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
         update();
