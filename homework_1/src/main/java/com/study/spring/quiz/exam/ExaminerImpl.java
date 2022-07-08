@@ -1,5 +1,6 @@
 package com.study.spring.quiz.exam;
 
+import com.study.spring.quiz.config.ExamParams;
 import com.study.spring.quiz.dto.Question;
 import com.study.spring.quiz.dto.QuestionResult;
 import com.study.spring.quiz.exceptions.IncorrectAnswerException;
@@ -10,7 +11,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
@@ -24,24 +24,19 @@ public class ExaminerImpl implements Examiner {
   private final MessageSource messageSource;
   private final LineReader lineReader;
   private final LineWriter lineWriter;
-
-  @Value("${test.passThreshold}")
-  private String testPassThreshold;
-  @Value("${test.inputRetryThreshold}")
-  private String testInputRetryThreshold;
+  private final UserNameHolder userNameHolder;
+  private final ExamParams examParams;
 
   @Override
   public void examStudent(List<Question> questions) {
     printGreeting();
-    String name = lineReader.readLine();
     List<QuestionResult> testResult = executeTest(questions);
     long correctAnswerCount = countCorrectAnswers(testResult);
-    printResult(correctAnswerCount, name);
+    printResult(correctAnswerCount, userNameHolder.getName());
   }
 
   private void printGreeting() {
-    lineWriter.writeLine(messageSource.getMessage("greeting", null, Locale.getDefault()));
-    lineWriter.writeLine(messageSource.getMessage("user.name.request", null,  Locale.getDefault()));
+    lineWriter.writeLine(messageSource.getMessage("test.rules", null, Locale.getDefault()));
   }
 
   private List<QuestionResult> executeTest(List<Question> questions) {
@@ -55,7 +50,7 @@ public class ExaminerImpl implements Examiner {
   }
 
   private String tryGetUserAnswer(Question question) {
-    int retries = Integer.parseInt(testInputRetryThreshold);
+    int retries = examParams.getInputRetryThreshold();
     while (retries > 0) {
       try {
         String userAnswer = lineReader.readLine();
@@ -76,7 +71,7 @@ public class ExaminerImpl implements Examiner {
   }
 
   private void printResult(long correctAnswerCount, String name) {
-    if (correctAnswerCount >= Integer.parseInt(testPassThreshold)) {
+    if (correctAnswerCount >= examParams.getPassThreshold()) {
       lineWriter.writeLine(messageSource.getMessage("success.test.result", new String[]{name}, Locale.getDefault()));
     } else {
       lineWriter.writeLine(messageSource.getMessage("failed.test.result", new String[]{name},  Locale.getDefault()));
