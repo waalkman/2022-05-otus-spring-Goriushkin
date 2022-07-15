@@ -12,7 +12,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -32,15 +36,24 @@ public class BookDaoImpl implements BookDao {
   }
 
   @Override
-  public void create(Book book) {
+  public long create(Book book) {
     try {
+      KeyHolder keyHolder = new GeneratedKeyHolder();
+      SqlParameterSource sqlParameterSource =
+          new MapSqlParameterSource(
+              Map.of(
+                  "title", book.getTitle(),
+                  "description", book.getDescription(),
+                  "genreId", book.getGenreId(),
+                  "authorId", book.getAuthorId()));
+
       jdbcOperations.update(
           "insert into books (title, description, genre_id, author_id) values (:title, :description, :genreId, :authorId)",
-          Map.of(
-              "title", book.getTitle(),
-              "description", book.getDescription(),
-              "genreId", book.getGenreId(),
-              "authorId", book.getAuthorId()));
+          sqlParameterSource,
+          keyHolder,
+          new String[] { "id" });
+
+      return keyHolder.getKey() == null ? -1L : keyHolder.getKey().longValue();
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot create book", e);
     }
@@ -79,7 +92,7 @@ public class BookDaoImpl implements BookDao {
           Map.of("id", id),
           new BookMapper());
     } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Book not found", e);
+      throw new EntityNotFoundException("Book not found", e, "Book");
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot get book by id", e);
     }

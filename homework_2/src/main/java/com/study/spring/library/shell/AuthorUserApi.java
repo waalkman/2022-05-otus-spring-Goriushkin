@@ -2,34 +2,34 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
+import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
-import com.study.spring.library.io.AuthorPrinter;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
-import com.study.spring.library.io.UserInputReaderImpl;
+import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.dao.DataAccessException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
 
-  private static final Map<Integer, String> OPTIONS = new HashMap<>();
+  private static final String[] OPTIONS = new String[AuthorDao.class.getDeclaredMethods().length];
   static {
-    Method[] methods = AuthorDao.class.getDeclaredMethods();
-    for (int i = 0; i < methods.length; ++i) {
-      OPTIONS.put(i + 1, methods[i].getName());
-    }
+    Arrays.stream(AuthorDao.class.getDeclaredMethods())
+          .map(Method::getName)
+          .sorted()
+          .collect(Collectors.toList())
+          .toArray(OPTIONS);
   }
 
   private final AuthorDao authorDao;
   private final Printer<Author> authorPrinter;
 
   public AuthorUserApi(
-      UserInputReaderImpl userInputReader,
+      UserInputReader userInputReader,
       LineWriter lineWriter,
       AuthorDao authorDao,
       Printer<Author> authorPrinter) {
@@ -40,7 +40,7 @@ public class AuthorUserApi extends BaseUserApi {
   }
 
   @Override
-  protected Map<Integer, String> getOptions() {
+  protected String[] getOptions() {
     return OPTIONS;
   }
 
@@ -49,9 +49,9 @@ public class AuthorUserApi extends BaseUserApi {
     try {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
-      lineWriter.writeLine("Author(s) not found");
-    } catch (DataAccessException e) {
-      lineWriter.writeLine(String.format("Error executing operation %s", e.getMessage()));
+      getLineWriter().writeLine("Author(s) not found");
+    } catch (DataQueryException e) {
+      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
@@ -81,48 +81,48 @@ public class AuthorUserApi extends BaseUserApi {
     }
   }
 
-  public void update() {
-    lineWriter.writeLine("Enter author id:");
-    long id = userInputReader.readLongFromLine();
-    lineWriter.writeLine("Enter author name:");
-    String name = userInputReader.readLine();
+  private void update() {
+    getLineWriter().writeLine("Enter author id:");
+    long id = getUserInputReader().readLongFromLine();
+    getLineWriter().writeLine("Enter author name:");
+    String name = getUserInputReader().readLine();
     authorDao.update(new Author(id, name));
-    lineWriter.writeLine("Author updated");
+    getLineWriter().writeLine("Author updated");
   }
 
-  public void create() {
-    lineWriter.writeLine("Enter new author name:");
-    String name = userInputReader.readLine();
+  private void create() {
+    getLineWriter().writeLine("Enter new author name:");
+    String name = getUserInputReader().readLine();
     authorDao.create(Author.builder().name(name).build());
-    lineWriter.writeLine("Author created");
+    getLineWriter().writeLine("Author created");
   }
 
-  public void getAll() {
-    lineWriter.writeLine("All authors:");
+  private void getAll() {
+    getLineWriter().writeLine("All authors:");
     authorPrinter.print(authorDao.getAll());
   }
 
   private void getIdByName() {
-    lineWriter.writeLine("Enter author name:");
-    String name = userInputReader.readLine();
+    getLineWriter().writeLine("Enter author name:");
+    String name = getUserInputReader().readLine();
     Long id = authorDao.getIdByName(name);
-    lineWriter.writeLine("Result:");
-    lineWriter.writeLine(id + "");
+    getLineWriter().writeLine("Result:");
+    getLineWriter().writeLine(id + "");
   }
 
   private void getByid() {
-    lineWriter.writeLine("Enter author id:");
-    long id = userInputReader.readLongFromLine();
+    getLineWriter().writeLine("Enter author id:");
+    long id = getUserInputReader().readLongFromLine();
     Author author = authorDao.getById(id);
-    lineWriter.writeLine("Result:");
+    getLineWriter().writeLine("Result:");
     authorPrinter.print(author);
   }
 
   private void deleteById() {
-    lineWriter.writeLine("Enter author id:");
-    long id = userInputReader.readLongFromLine();
+    getLineWriter().writeLine("Enter author id:");
+    long id = getUserInputReader().readLongFromLine();
     authorDao.deleteById(id);
-    lineWriter.writeLine("Deleted successfully");
+    getLineWriter().writeLine("Deleted successfully");
   }
 
 }

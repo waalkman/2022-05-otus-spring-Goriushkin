@@ -3,28 +3,28 @@ package com.study.spring.library.shell;
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.GenreDao;
-import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
-import com.study.spring.library.io.UserInputReaderImpl;
+import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.dao.DataAccessException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BookUserApi extends BaseUserApi {
 
-  private static final Map<Integer, String> OPTIONS = new HashMap<>();
+  private static final String[] OPTIONS = new String[BookDao.class.getDeclaredMethods().length];
   static {
-    Method[] methods = BookDao.class.getDeclaredMethods();
-    for (int i = 0; i < methods.length; ++i) {
-      OPTIONS.put(i + 1, methods[i].getName());
-    }
+    Arrays.stream(BookDao.class.getDeclaredMethods())
+          .map(Method::getName)
+          .sorted()
+          .collect(Collectors.toList())
+          .toArray(OPTIONS);
   }
 
   private final BookDao bookDao;
@@ -33,7 +33,7 @@ public class BookUserApi extends BaseUserApi {
   private final Printer<Book> bookPrinter;
 
   public BookUserApi(
-      UserInputReaderImpl userInputReader,
+      UserInputReader userInputReader,
       LineWriter lineWriter,
       BookDao bookDao,
       GenreDao genreDao,
@@ -48,7 +48,7 @@ public class BookUserApi extends BaseUserApi {
   }
 
   @Override
-  protected Map<Integer, String> getOptions() {
+  protected String[] getOptions() {
     return OPTIONS;
   }
 
@@ -57,9 +57,9 @@ public class BookUserApi extends BaseUserApi {
     try {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
-      lineWriter.writeLine("Book(s) not found");
-    } catch (DataAccessException e) {
-      lineWriter.writeLine(String.format("Error executing operation %s", e.getMessage()));
+      getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
+    } catch (DataQueryException e) {
+      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
@@ -86,30 +86,30 @@ public class BookUserApi extends BaseUserApi {
     }
   }
 
-  public void update() {
-    lineWriter.writeLine("Enter book id:");
-    long id = userInputReader.readLongFromLine();
+  private void update() {
+    getLineWriter().writeLine("Enter book id:");
+    long id = getUserInputReader().readLongFromLine();
     Book book = gatherBookData(id);
     bookDao.update(book);
-    lineWriter.writeLine("Book updated");
+    getLineWriter().writeLine("Book updated");
   }
 
-  public void create() {
+  private void create() {
     Book book = gatherBookData(null);
     bookDao.create(book);
-    lineWriter.writeLine("Book created");
+    getLineWriter().writeLine("Book created");
   }
 
   private Book gatherBookData(Long id) {
-    lineWriter.writeLine("Enter book title:");
-    String title = userInputReader.readLine();
-    lineWriter.writeLine("Enter book description:");
-    String description = userInputReader.readLine();
-    lineWriter.writeLine("Enter book genre:");
-    String genre = userInputReader.readLine();
+    getLineWriter().writeLine("Enter book title:");
+    String title = getUserInputReader().readLine();
+    getLineWriter().writeLine("Enter book description:");
+    String description = getUserInputReader().readLine();
+    getLineWriter().writeLine("Enter book genre:");
+    String genre = getUserInputReader().readLine();
     Long genreId = genreDao.getIdByName(genre);
-    lineWriter.writeLine("Enter book author:");
-    String author = userInputReader.readLine();
+    getLineWriter().writeLine("Enter book author:");
+    String author = getUserInputReader().readLine();
     Long authorId = authorDao.getIdByName(author);
     return Book.builder()
                .id(id)
@@ -120,23 +120,23 @@ public class BookUserApi extends BaseUserApi {
                .build();
   }
 
-  public void getAll() {
-    lineWriter.writeLine("All books:");
+  private void getAll() {
+    getLineWriter().writeLine("All books:");
     bookPrinter.print(bookDao.getAll());
   }
 
   private void getByid() {
-    lineWriter.writeLine("Enter book id:");
-    long id = userInputReader.readLongFromLine();
+    getLineWriter().writeLine("Enter book id:");
+    long id = getUserInputReader().readLongFromLine();
     Book book = bookDao.getById(id);
     bookPrinter.print(book);
   }
 
   private void deleteById() {
-    lineWriter.writeLine("Enter book id:");
-    long id = userInputReader.readLongFromLine();
+    getLineWriter().writeLine("Enter book id:");
+    long id = getUserInputReader().readLongFromLine();
     bookDao.deleteById(id);
-    lineWriter.writeLine("Deleted successfully");
+    getLineWriter().writeLine("Deleted successfully");
   }
 
 }

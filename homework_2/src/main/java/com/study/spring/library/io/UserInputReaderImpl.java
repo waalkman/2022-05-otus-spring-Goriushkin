@@ -2,7 +2,6 @@ package com.study.spring.library.io;
 
 import com.study.spring.library.config.InputConfig;
 import com.study.spring.library.exceptions.NotEnoughPatienceException;
-import java.util.InputMismatchException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

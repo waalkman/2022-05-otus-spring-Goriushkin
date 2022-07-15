@@ -6,7 +6,7 @@ import java.util.Collection;
 public interface GenreDao {
 
   Collection<Genre> getAll();
-  void create(Genre genre);
+  long create(Genre genre);
   Genre getById(Long id);
   Long getIdByName(String name);
   void update(Genre genre);

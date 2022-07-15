@@ -12,7 +12,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,12 +36,17 @@ public class GenreDaoImpl implements GenreDao {
   }
 
   @Override
-  public void create(Genre genre) {
+  public long create(Genre genre) {
     try {
+      KeyHolder keyHolder = new GeneratedKeyHolder();
+      SqlParameterSource sqlParameterSource = new MapSqlParameterSource(Map.of("name", genre.getName()));
       jdbcOperations.update(
-          "update genres set name = :name where id = :id",
-          Map.of("id", genre.getId(),
-                 "name", genre.getName()));
+          "insert into genres (name) values (:name)",
+          sqlParameterSource,
+          keyHolder,
+          new String[] { "id" });
+
+      return keyHolder.getKey() == null ? -1L : keyHolder.getKey().longValue();
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot create genre", e);
     }
@@ -56,7 +65,7 @@ public class GenreDaoImpl implements GenreDao {
           Map.of("name", name),
           Long.class);
     } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Genre not found", e);
+      throw new EntityNotFoundException("Genre not found", e, "Genre");
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot get genre by name", e);
     }
@@ -67,8 +76,8 @@ public class GenreDaoImpl implements GenreDao {
     findById(genre.getId());
     try {
       jdbcOperations.update(
-          "insert into genres (name) values (:name)",
-          Map.of("name", genre.getName()));
+          "update genres set name = :name where id = :id",
+          Map.of("id", genre.getId(), "name", genre.getName()));
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot update genre", e);
     }
@@ -90,7 +99,7 @@ public class GenreDaoImpl implements GenreDao {
           Map.of("id", id),
           new GenreMapper());
     } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Genre not found", e);
+      throw new EntityNotFoundException("Genre not found", e, "Genre");
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot get genre by id", e);
     }

@@ -1,34 +1,38 @@
 package com.study.spring.library.shell;
 
 import com.study.spring.library.io.LineWriter;
-import com.study.spring.library.io.UserInputReaderImpl;
-import java.util.Map;
+import com.study.spring.library.io.UserInputReader;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 public abstract class BaseUserApi {
 
-  protected final UserInputReaderImpl userInputReader;
-  protected final LineWriter lineWriter;
+  private final UserInputReader userInputReader;
+  private final LineWriter lineWriter;
 
-  public int chooseOptionMenu() {
+  public void selectAndPerformOperation() {
     lineWriter.writeLine("Choose option:");
-    getOptions().forEach((key, value) -> lineWriter.writeLine(String.format("%d: %s", key, value)));
-    return userInputReader.readIntFromLine();
-  }
-
-  public void acceptOption(int option) {
-    String operation = getOptions().get(option);
-    if (operation == null) {
+    printOptions();
+    int option = userInputReader.readIntFromLine();
+    if (option > getOptions().length) {
       lineWriter.writeLine("Entered option index is out of range");
       return;
     }
+    String operation = getOptions()[option - 1];
 
     runOperation(operation);
   }
 
   protected abstract void runOperation(String operation);
   protected abstract void chooseOperation(String operation);
-  protected abstract Map<Integer, String> getOptions();
+  protected abstract String[] getOptions();
+
+  private void printOptions() {
+    for (int i = 0; i < getOptions().length; ++i) {
+      lineWriter.writeLine(String.format("%d: %s", i + 1, getOptions()[i]));
+    }
+  }
 
 }

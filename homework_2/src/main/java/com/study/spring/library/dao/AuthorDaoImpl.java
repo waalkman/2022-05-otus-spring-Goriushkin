@@ -12,7 +12,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,11 +36,19 @@ public class AuthorDaoImpl implements AuthorDao {
   }
 
   @Override
-  public void create(Author author) {
+  public long create(Author author) {
     try {
+      KeyHolder keyHolder = new GeneratedKeyHolder();
+      SqlParameterSource sqlParameterSource =
+          new MapSqlParameterSource(
+              Map.of("name", author.getName()));
       jdbcOperations.update(
           "insert into authors (name) values (:name)",
-          Map.of("name", author.getName()));
+          sqlParameterSource,
+          keyHolder,
+          new String[] { "id" });
+
+      return keyHolder.getKey() == null ? -1L : keyHolder.getKey().longValue();
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot create author", e);
     }
@@ -88,7 +100,7 @@ public class AuthorDaoImpl implements AuthorDao {
           Map.of("id", id),
           new AuthorMapper());
     } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Author not found", e);
+      throw new EntityNotFoundException("Author not found", e, "Author");
     } catch (DataAccessException e) {
       throw new DataQueryException("Cannot get author by id", e);
     }
