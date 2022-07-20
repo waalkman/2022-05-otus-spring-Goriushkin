@@ -39,4 +39,5 @@ out/
 **/.DS_Store
 **/gradle/
 **/gradlew*
+
 **/spring-shell.log

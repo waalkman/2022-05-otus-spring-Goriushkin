@@ -26,7 +26,6 @@ public class AnswerFormatValidatorImpl implements AnswerFormatValidator {
   private void validateOptionsAnswer(Question question, String userAnswer) {
       String[] answers = userAnswer.split(" ", -1);
       parseAndCheckAnswers(question, answers);
-
     }
 
     private void parseAndCheckAnswers(Question question, String[] answers) {

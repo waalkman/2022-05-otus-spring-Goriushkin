@@ -29,16 +29,21 @@ public class QuestionsParserImpl implements QuestionsParser {
       String title = questionIterator.next();
       List<String> answers = Arrays.asList(questionIterator.next().split(",", -1));
       List<String> correctMarks = Arrays.asList(questionIterator.next().split(",", -1));
-      return new Question(title, constructOptions(answers, correctMarks), Utils.isFreeTextAnswer(answers));
+      boolean isFreetext = Utils.isFreeTextAnswer(answers);
+      return new Question(title, constructOptions(isFreetext, answers, correctMarks), isFreetext);
     } catch (NoSuchElementException e) {
       throw new LoadQuestionsException("Incorrect questions file line format", e);
     }
   }
 
-  private List<Option> constructOptions(List<String> answers, List<String> correctMarks) {
-    return IntStream.range(0, answers.size())
-                    .boxed()
-                    .map(i -> new Option(answers.get(i), Constants.CORRECT_ANSWER_MARK.equals(correctMarks.get(i))))
-                    .collect(Collectors.toList());
+  private List<Option> constructOptions(boolean isFreetext, List<String> answers, List<String> correctMarks) {
+    if (isFreetext) {
+      return List.of(new Option(correctMarks.get(0), true));
+    } else {
+      return IntStream.range(0, answers.size())
+                      .boxed()
+                      .map(i -> new Option(answers.get(i), Constants.CORRECT_ANSWER_MARK.equals(correctMarks.get(i))))
+                      .collect(Collectors.toList());
+    }
   }
 }
