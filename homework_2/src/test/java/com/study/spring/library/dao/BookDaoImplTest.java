@@ -12,10 +12,14 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 
 @JdbcTest
-@Import(BookDaoImpl.class)
+@Import({BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BookDaoImplTest {
 
+  @Autowired
+  private AuthorDaoImpl authorDao;
+  @Autowired
+  private GenreDaoImpl genreDao;
   @Autowired
   private BookDaoImpl bookDao;
 
@@ -28,19 +32,13 @@ class BookDaoImplTest {
 
   @Test
   void create_success() {
-    Book book = Book.builder()
-                    .title("title")
-                    .description("decsr")
-                    .authorId(1L)
-                    .genreId(1L)
-                    .build();
-
+    Book book = getFirstBook();
     long bookId = bookDao.create(book);
     Book bookById = bookDao.getById(bookId);
     assertEquals(book.getTitle(), bookById.getTitle());
     assertEquals(book.getDescription(), bookById.getDescription());
-    assertEquals(book.getAuthorId(), bookById.getAuthorId());
-    assertEquals(book.getGenreId(), bookById.getGenreId());
+    assertEquals("Ваня", bookById.getAuthor());
+    assertEquals("воздух", bookById.getGenre());
   }
 
   @Test
@@ -49,18 +47,18 @@ class BookDaoImplTest {
 
     assertEquals("Как понять слона", book.getTitle());
     assertEquals("Слоны для чайников", book.getDescription());
-    assertEquals(2, book.getAuthorId());
-    assertEquals(4, book.getGenreId());
+    assertEquals("Ваня", book.getAuthor());
+    assertEquals("воздух", book.getGenre());
   }
 
   @Test
   void update_success() {
     Book newBookData = Book.builder()
                            .id(1L)
-                           .title("title")
-                           .description("decsr")
-                           .authorId(1L)
-                           .genreId(1L)
+                           .title("title_upd")
+                           .description("decsr_upd")
+                           .author("Маня")
+                           .genre("конь")
                            .build();
 
     bookDao.update(newBookData);
@@ -73,5 +71,15 @@ class BookDaoImplTest {
   void deleteById_success() {
     bookDao.deleteById(1L);
     assertThrows(EntityNotFoundException.class, () -> bookDao.getById(1L));
+  }
+
+  private static Book getFirstBook() {
+    return Book.builder()
+               .id(1L)
+               .title("title")
+               .description("decsr")
+               .author("Ваня")
+               .genre("воздух")
+               .build();
   }
 }

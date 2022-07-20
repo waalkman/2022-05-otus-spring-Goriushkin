@@ -1,10 +1,10 @@
 package com.study.spring.library.io;
 
-import com.study.spring.library.domain.PrintableBook;
+import com.study.spring.library.domain.Book;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookPrinter extends Printer<PrintableBook> {
+public class BookPrinter extends Printer<Book> {
 
   private static final String HEADER =
       "ID  TITLE" + " ".repeat(45) + "DESCRIPTION" + " ".repeat(39) + "AUTHOR" + " ".repeat(7) + "GENRE";
@@ -16,7 +16,7 @@ public class BookPrinter extends Printer<PrintableBook> {
   }
 
   @Override
-  protected void printSingleEntity(PrintableBook book) {
+  protected void printSingleEntity(Book book) {
     lineWriter.writeLine(
         String.format(
             PATTERN, book.getId(), book.getTitle(), book.getDescription(), book.getAuthor(), book.getGenre()));

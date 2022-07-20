@@ -8,17 +8,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.PrintableBook;
 import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import com.study.spring.library.map.EntityMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,13 +30,7 @@ class BookUserApiTest {
   @Spy
   private LineWriter lineWriter;
   @Spy
-  private GenreDao genreDao;
-  @Spy
-  private AuthorDao authorDao;
-  @Spy
   private BookDao bookDao;
-  @Spy
-  private EntityMapper<Book, PrintableBook> bookMapper;
   @Mock
   private Printer<Book> bookPrinter;
   @InjectMocks
@@ -52,8 +42,6 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(11)).writeLine(any());
-    verify(genreDao).getIdByName(any());
-    verify(authorDao).getIdByName(any());
     verify(bookDao).create(any());
   }
 
@@ -86,7 +74,6 @@ class BookUserApiTest {
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(7)).writeLine(any());
     verify(bookDao).getById(any());
-    verify(bookMapper).map(testBook);
   }
 
   @Test

@@ -11,3 +11,7 @@ spring:
     allow-circular-references: true
 input:
   retriesThreshold: 3
+logging:
+  level:
+    root: info
+#    org.springframework.jdbc: debug

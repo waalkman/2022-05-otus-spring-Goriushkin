@@ -1,20 +1,15 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.PrintableBook;
 import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import com.study.spring.library.map.EntityMapper;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -31,25 +26,16 @@ public class BookUserApi extends BaseUserApi {
   }
 
   private final BookDao bookDao;
-  private final GenreDao genreDao;
-  private final AuthorDao authorDao;
-  private final EntityMapper<Book, PrintableBook> bookMapper;
-  private final Printer<PrintableBook> bookPrinter;
+  private final Printer<Book> bookPrinter;
 
   public BookUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
       BookDao bookDao,
-      GenreDao genreDao,
-      AuthorDao authorDao,
-      EntityMapper<Book, PrintableBook> bookMapper,
-      Printer<PrintableBook> bookPrinter) {
+      Printer<Book> bookPrinter) {
 
     super(userInputReader, lineWriter);
     this.bookDao = bookDao;
-    this.genreDao = genreDao;
-    this.authorDao = authorDao;
-    this.bookMapper = bookMapper;
     this.bookPrinter = bookPrinter;
   }
 
@@ -113,35 +99,27 @@ public class BookUserApi extends BaseUserApi {
     String description = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter book genre:");
     String genre = getUserInputReader().readLine();
-    Long genreId = genreDao.getIdByName(genre);
     getLineWriter().writeLine("Enter book author:");
     String author = getUserInputReader().readLine();
-    Long authorId = authorDao.getIdByName(author);
     return Book.builder()
                .id(id)
                .title(title)
                .description(description)
-               .genreId(genreId)
-               .authorId(authorId)
+               .genre(genre)
+               .author(author)
                .build();
   }
 
   private void getAll() {
     getLineWriter().writeLine("All books:");
-    Collection<PrintableBook> printableBooks =
-        bookDao.getAll()
-               .stream()
-               .map(bookMapper::map)
-               .collect(Collectors.toList());
-
-    bookPrinter.print(printableBooks);
+    bookPrinter.print(bookDao.getAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
     Book book = bookDao.getById(id);
-    bookPrinter.print(bookMapper.map(book));
+    bookPrinter.print(book);
   }
 
   private void deleteById() {

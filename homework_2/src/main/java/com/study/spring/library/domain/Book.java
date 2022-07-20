@@ -10,7 +10,7 @@ public class Book {
   private final Long id;
   private final String title;
   private final String description;
-  private final Long genreId;
-  private final Long authorId;
+  private final String genre;
+  private final String author;
 
 }
