@@ -1,6 +1,8 @@
 package com.study.spring.library.shell;
 
+import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
+import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
@@ -26,15 +28,21 @@ public class BookUserApi extends BaseUserApi {
   }
 
   private final BookDao bookDao;
+  private final AuthorDao authorDao;
+  private final GenreDao genreDao;
   private final Printer<Book> bookPrinter;
 
   public BookUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
       BookDao bookDao,
+      AuthorDao authorDao,
+      GenreDao genreDao,
       Printer<Book> bookPrinter) {
 
     super(userInputReader, lineWriter);
+    this.authorDao = authorDao;
+    this.genreDao = genreDao;
     this.bookDao = bookDao;
     this.bookPrinter = bookPrinter;
   }
@@ -82,13 +90,17 @@ public class BookUserApi extends BaseUserApi {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
     Book book = gatherBookData(id);
-    bookDao.update(book);
+    Long genreId = genreDao.getIdByName(book.getGenre());
+    Long authorId = authorDao.getIdByName(book.getAuthor());
+    bookDao.update(book, genreId, authorId);
     getLineWriter().writeLine("Book updated");
   }
 
   private void create() {
     Book book = gatherBookData(null);
-    bookDao.create(book);
+    Long genreId = genreDao.getIdByName(book.getGenre());
+    Long authorId = authorDao.getIdByName(book.getAuthor());
+    bookDao.create(book, genreId, authorId);
     getLineWriter().writeLine("Book created");
   }
 

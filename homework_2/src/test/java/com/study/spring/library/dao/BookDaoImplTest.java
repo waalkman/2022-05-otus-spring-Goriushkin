@@ -12,14 +12,10 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 
 @JdbcTest
-@Import({BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
+@Import(BookDaoImpl.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BookDaoImplTest {
 
-  @Autowired
-  private AuthorDaoImpl authorDao;
-  @Autowired
-  private GenreDaoImpl genreDao;
   @Autowired
   private BookDaoImpl bookDao;
 
@@ -33,7 +29,7 @@ class BookDaoImplTest {
   @Test
   void create_success() {
     Book book = getFirstBook();
-    long bookId = bookDao.create(book);
+    long bookId = bookDao.create(book, 4L, 2L);
     Book bookById = bookDao.getById(bookId);
     assertEquals(book.getTitle(), bookById.getTitle());
     assertEquals(book.getDescription(), bookById.getDescription());
@@ -61,7 +57,7 @@ class BookDaoImplTest {
                            .genre("конь")
                            .build();
 
-    bookDao.update(newBookData);
+    bookDao.update(newBookData, 1L, 3L);
     Book bookFromDb = bookDao.getById(1L);
 
     assertEquals(newBookData, bookFromDb);

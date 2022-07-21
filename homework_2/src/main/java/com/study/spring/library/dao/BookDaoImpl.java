@@ -26,8 +26,6 @@ public class BookDaoImpl implements BookDao {
 
   private final JdbcOperations jdbc;
   private final NamedParameterJdbcOperations jdbcOperations;
-  private final AuthorDao authorDao;
-  private final GenreDao genreDao;
 
   @Override
   public Collection<Book> getAll() {
@@ -44,11 +42,8 @@ public class BookDaoImpl implements BookDao {
   }
 
   @Override
-  public long create(Book book) {
+  public long create(Book book, Long genreId, Long authorId) {
     try {
-      Long genreId = genreDao.getIdByName(book.getGenre());
-      Long authorId = authorDao.getIdByName(book.getAuthor());
-
       KeyHolder keyHolder = new GeneratedKeyHolder();
       SqlParameterSource sqlParameterSource =
           new MapSqlParameterSource(
@@ -76,10 +71,8 @@ public class BookDaoImpl implements BookDao {
   }
 
   @Override
-  public void update(Book book) {
+  public void update(Book book, Long genreId, Long authorId) {
     findById(book.getId());
-    Long genreId = genreDao.getIdByName(book.getGenre());
-    Long authorId = authorDao.getIdByName(book.getAuthor());
 
     jdbcOperations.update(
         "update books set title = :title, description = :description, genre_id = :genreId, author_id = :authorId where id = :id",
