@@ -70,7 +70,7 @@ public class AuthorUserApi extends BaseUserApi {
       case "getById":
         getByid();
         break;
-      case "getIdByName":
+      case "getByName":
         getIdByName();
         break;
       case "deleteById":
@@ -105,9 +105,7 @@ public class AuthorUserApi extends BaseUserApi {
   private void getIdByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    Long id = authorDao.getIdByName(name);
-    getLineWriter().writeLine("Result:");
-    getLineWriter().writeLine(id + "");
+    authorPrinter.print(authorDao.getByName(name));
   }
 
   private void getByid() {

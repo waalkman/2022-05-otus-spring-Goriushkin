@@ -15,6 +15,8 @@ public class ShellApi {
   private final BaseUserApi authorUserApi;
   @Qualifier("bookUserApi")
   private final BaseUserApi bookUserApi;
+  @Qualifier("commentUserApi")
+  private final CommentUserApi commentUserApi;
 
   @ShellMethod(key = {"genre", "g"}, value = "Genre api")
   public void genreApi() {
@@ -29,5 +31,10 @@ public class ShellApi {
   @ShellMethod(key = {"book", "b"}, value = "Book api")
   public void bookApi() {
     bookUserApi.selectAndPerformOperation();
+  }
+
+  @ShellMethod(key = {"comment", "c"}, value = "Comments api")
+  public void commentsApi() {
+    commentUserApi.selectAndPerformOperation();
   }
 }

@@ -6,9 +6,10 @@ import java.util.Collection;
 public interface BookDao {
 
   Collection<Book> getAll();
-  long create(Book book, Long genreId, Long authorId);
+  long create(Book book);
   Book getById(Long id);
-  void update(Book book, Long genreId, Long authorId);
+  Book getByTitle(String title);
+  void update(Book book);
   void deleteById(Long id);
 
 }

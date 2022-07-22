@@ -70,7 +70,7 @@ public class GenreUserApi extends BaseUserApi {
       case "getById":
         getByid();
         break;
-      case "getIdByName":
+      case "getByName":
         getIdByName();
         break;
       case "deleteById":
@@ -113,9 +113,8 @@ public class GenreUserApi extends BaseUserApi {
   private void getIdByName() {
     getLineWriter().writeLine("Enter genre name:");
     String name = getUserInputReader().readLine();
-    Long id = genreDao.getIdByName(name);
-    getLineWriter().writeLine("Result:");
-    getLineWriter().writeLine(id + "");
+    Genre genre = genreDao.getByName(name);
+    printer.print(genre);
   }
 
   private void deleteById() {

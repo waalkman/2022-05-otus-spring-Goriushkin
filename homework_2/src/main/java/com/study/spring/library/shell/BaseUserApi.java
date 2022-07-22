@@ -4,6 +4,7 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.UserInputReader;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Getter
 @RequiredArgsConstructor
@@ -12,6 +13,7 @@ public abstract class BaseUserApi {
   private final UserInputReader userInputReader;
   private final LineWriter lineWriter;
 
+  @Transactional
   public void selectAndPerformOperation() {
     lineWriter.writeLine("Choose option:");
     printOptions();
