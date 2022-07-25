@@ -1,0 +1,68 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group 'com.study.spring'
+version "1.0"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(15)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.shell:spring-shell-starter:2.0.1.RELEASE'
+    implementation 'org.liquibase:liquibase-core'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.postgresql:postgresql'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+        resources {
+            srcDir 'src/test/resources'
+        }
+    }
+}
+
+processResources() {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+processTestResources() {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
