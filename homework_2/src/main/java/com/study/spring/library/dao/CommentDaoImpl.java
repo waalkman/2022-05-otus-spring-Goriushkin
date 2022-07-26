@@ -1,14 +1,12 @@
 package com.study.spring.library.dao;
 
-import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.Collection;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -50,7 +48,9 @@ public class CommentDaoImpl implements CommentDao {
 
   @Override
   public void deleteById(Long id) {
-    //TODO
+    Query commentQuery = em.createQuery("delete from Comment c where c.id = :id");
+    commentQuery.setParameter("id", id);
+    commentQuery.executeUpdate();
   }
 
   private long save(Comment comment) {

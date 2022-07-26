@@ -15,6 +15,7 @@ import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
+import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -82,8 +83,8 @@ class GenreUserApiTest {
     when(userInputReader.readIntFromLine()).thenReturn(5);
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(10)).writeLine(any());
-    verify(genreDao).getIdByName(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(genreDao).getByName(any());
   }
 
   @Test
@@ -117,7 +118,7 @@ class GenreUserApiTest {
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(DataQueryException.class).when(genreDao).update(any());
+    doThrow(PersistenceException.class).when(genreDao).update(any());
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());

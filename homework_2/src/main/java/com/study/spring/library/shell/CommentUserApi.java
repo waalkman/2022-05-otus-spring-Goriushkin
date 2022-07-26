@@ -13,14 +13,13 @@ import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import liquibase.repackaged.org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 @Component
 public class CommentUserApi extends BaseUserApi {
 
   private static final String[] OPTIONS = new String[CommentDao.class.getDeclaredMethods().length];
+
   static {
     Arrays.stream(CommentDao.class.getDeclaredMethods())
           .map(Method::getName)
@@ -86,19 +85,18 @@ public class CommentUserApi extends BaseUserApi {
   }
 
   private void update() {
-//    getLineWriter().writeLine("Enter author id:");
-//    long id = getUserInputReader().readLongFromLine();
-//    getLineWriter().writeLine("Enter author name:");
-//    String name = getUserInputReader().readLine();
-//    commentDao.update(new Author(id, name));
-//    getLineWriter().writeLine("Author updated");
+    getLineWriter().writeLine("Enter comment id");
+    long id = getUserInputReader().readLongFromLine();
+    commentDao.getById(id);
+    Comment comment = gatherCommentData(id);
+    commentDao.create(comment);
+    getLineWriter().writeLine("Comment updated");
   }
 
   private void create() {
-//    getLineWriter().writeLine("Enter new author name:");
-//    String name = getUserInputReader().readLine();
-//    commentDao.create();
-//    getLineWriter().writeLine("Comment created");
+    Comment comment = gatherCommentData(null);
+    commentDao.create(comment);
+    getLineWriter().writeLine("Comment created");
   }
 
   private void getAll() {
@@ -115,28 +113,27 @@ public class CommentUserApi extends BaseUserApi {
   }
 
   private void deleteById() {
-//    getLineWriter().writeLine("Enter author id:");
-//    long id = getUserInputReader().readLongFromLine();
-//    authorDao.deleteById(id);
-//    getLineWriter().writeLine("Deleted successfully");
+    getLineWriter().writeLine("Enter comment id:");
+    long id = getUserInputReader().readLongFromLine();
+    commentDao.deleteById(id);
+    getLineWriter().writeLine("Deleted successfully");
   }
 
-  private Comment gatherCommentData() {
+  private Comment gatherCommentData(Long id) {
     getLineWriter().writeLine("Enter book title:");
-    String bookTitle = getUserInputReader().readLine();
-    Book book = bookDao.getByTitle(bookTitle);
-    //TODO
-//    getLineWriter().writeLine("Enter comment:");
-//    String comment = getUserInputReader().readLine();
-//    getLineWriter().writeLine("Enter your name:");
-//    String userName = getUserInputReader().readLine();
-//    if (!StringUtils.hasLength(userName)) {
-//      userName = "anonymous";
-//    }
-//    return Comment.builder()
-//                  .book()
-//                  .build();
-    throw new NotImplementedException();
+    String title = getUserInputReader().readLine();
+    Book book = bookDao.getByTitle(title);
+    getLineWriter().writeLine("Enter your comment:");
+    String comment = getUserInputReader().readLine();
+    getLineWriter().writeLine("Enter your username:");
+    String username = getUserInputReader().readLine();
+
+    return Comment.builder()
+                  .id(id)
+                  .book(book)
+                  .userName(username)
+                  .text(comment)
+                  .build();
   }
 
 }

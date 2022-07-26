@@ -1,27 +1,29 @@
 package com.study.spring.library.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.study.spring.library.domain.Genre;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
+import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-@JdbcTest
+@DataJpaTest
 @Import(GenreDaoImpl.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class GenreDaoImplTest {
 
   @Autowired
   private GenreDaoImpl genreDao;
+  @Autowired
+  private TestEntityManager em;
 
   @Test
-  void getAll_success() {
+  void getAll() {
     int expectedAuthorsAmount = 4;
     int actualAuthorsAmount = genreDao.getAll().size();
     assertEquals(expectedAuthorsAmount, actualAuthorsAmount);
@@ -29,25 +31,25 @@ class GenreDaoImplTest {
 
   @Test
   void create_success() {
-    String name = "some genre";
+    String name = "some name";
     Genre genre = Genre.builder().name(name).build();
     long id = genreDao.create(genre);
-    Genre createdGenre = genreDao.getById(id);
-    assertEquals(genre.getName(), createdGenre.getName());
+    Genre createdGenre = em.find(Genre.class, id);
+    assertEquals(genre, createdGenre);
   }
-
 
   @Test
   void create_tooLongName_success() {
     String name = "some name that is veeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong";
     Genre genre = Genre.builder().name(name).build();
-    assertThrows(DataQueryException.class, () -> genreDao.create(genre));
+    assertThrows(PersistenceException.class, () -> genreDao.create(genre));
   }
 
   @Test
   void getById_success() {
-    Genre expectedGenre = Genre.builder().id(4L).name("воздух").build();
-    Genre actualGenre = genreDao.getById(4L);
+    Genre expectedGenre = DaoTestUtils.createGenre(em);
+    Long id = expectedGenre.getId();
+    Genre actualGenre = genreDao.getById(id);
     assertEquals(expectedGenre, actualGenre);
   }
 
@@ -57,29 +59,34 @@ class GenreDaoImplTest {
   }
 
   @Test
-  void getIdByName_success() {
-    long expectedId = 4L;
-    long actualId = genreDao.getIdByName("воздух");
-    assertEquals(expectedId, actualId);
+  void getByName_success() {
+    Genre createdGenre = DaoTestUtils.createGenre(em);
+    String name = createdGenre.getName();
+    Genre genre = genreDao.getByName(name);
+    assertEquals(createdGenre, genre);
   }
 
   @Test
   void update_success() {
-    Genre newNameGenre = Genre.builder().id(4L).name("Новелла").build();
-    genreDao.update(newNameGenre);
-    Genre updatedGenre = genreDao.getById(4L);
-    assertEquals(newNameGenre, updatedGenre);
+    String newName = "Updated name";
+    Genre createdGenre = DaoTestUtils.createGenre(em);
+    em.detach(createdGenre);
+    createdGenre.setName(newName);
+
+    genreDao.update(createdGenre);
+    Genre updatedGenre = em.find(Genre.class, createdGenre.getId());
+    assertEquals(newName, updatedGenre.getName());
   }
 
   @Test
   void deleteById_success() {
-    String name = "some name";
-    Genre newNameGenre = Genre.builder().name(name).build();
-    genreDao.create(newNameGenre);
-    Long id = genreDao.getIdByName(name);
-    Genre createdGenre = genreDao.getById(id);
-    assertEquals(newNameGenre.getName(), createdGenre.getName());
+    Genre createdGenre = DaoTestUtils.createGenre(em);
+    Long id = createdGenre.getId();
+    em.detach(createdGenre);
+
     genreDao.deleteById(id);
-    assertThrows(EntityNotFoundException.class, () -> genreDao.getById(id));
+
+    assertNull(em.find(Genre.class, id));
   }
+
 }

@@ -1,7 +1,6 @@
 package com.study.spring.library.io;
 
 import com.study.spring.library.domain.Comment;
-import com.study.spring.library.domain.Genre;
 import org.springframework.stereotype.Component;
 
 @Component

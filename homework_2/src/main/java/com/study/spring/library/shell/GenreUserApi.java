@@ -2,7 +2,6 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Genre;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -11,6 +10,7 @@ import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,7 +50,7 @@ public class GenreUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Genre(s) not found");
-    } catch (DataQueryException e) {
+    } catch (PersistenceException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
