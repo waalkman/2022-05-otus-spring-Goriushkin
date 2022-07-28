@@ -12,7 +12,7 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import java.util.Optional;
-import javax.persistence.PersistenceException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +52,7 @@ public class BookUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
-    } catch (PersistenceException e) {
+    } catch (DataAccessException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
@@ -75,13 +75,13 @@ public class BookUserApi extends BaseUserApi {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
     Book book = gatherBookData(id);
-    bookDao.update(book);
+    bookDao.save(book);
     getLineWriter().writeLine("Book updated");
   }
 
   private void create() {
     Book book = gatherBookData(null);
-    bookDao.create(book);
+    bookDao.save(book);
     getLineWriter().writeLine("Book created");
   }
 
@@ -92,36 +92,40 @@ public class BookUserApi extends BaseUserApi {
     String description = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter book genre:");
     String genreName = getUserInputReader().readLine();
-    Genre genre = genreDao.getByName(genreName);
+    Genre genre = genreDao.findByName(genreName)
+                          .orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre"));
+
     getLineWriter().writeLine("Enter book author:");
     String authorName = getUserInputReader().readLine();
-    Optional<Author> author = authorDao.findByName(authorName);
+    Author author = authorDao.findByName(authorName)
+                             .orElseThrow(() -> new EntityNotFoundException("Author not found", "Author"));
+
     return Book.builder()
                .id(id)
                .title(title)
                .description(description)
                .genre(genre)
-               .author(author.orElseThrow(() -> new EntityNotFoundException("Author not found", "Author")))
+               .author(author)
                .build();
   }
 
   private void getAll() {
     getLineWriter().writeLine("All books:");
-    bookPrinter.print(bookDao.getAll());
+    bookPrinter.print(bookDao.findAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
-    Book book = bookDao.getById(id);
-    bookPrinter.print(Optional.of(book));
+    Optional<Book> book = bookDao.findById(id);
+    bookPrinter.print(book);
   }
 
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    Book book = bookDao.getByTitle(title);
-    bookPrinter.print(Optional.of(book));
+    Optional<Book> book = bookDao.findByTitle(title);
+    bookPrinter.print(book);
   }
 
   private void deleteById() {

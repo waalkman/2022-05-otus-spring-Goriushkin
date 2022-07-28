@@ -43,7 +43,7 @@ public class AuthorUserApi extends BaseUserApi {
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
     } catch (DataAccessException e) {
-      getLineWriter().writeLine(String.format("Error executing operation %s", e.getCause().getCause().getMessage()));
+      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 

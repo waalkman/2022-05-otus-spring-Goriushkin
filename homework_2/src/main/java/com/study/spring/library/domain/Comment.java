@@ -9,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +21,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@NamedEntityGraph(name = "comment-graph", attributeNodes = {@NamedAttributeNode("book")})
 public class Comment {
 
   @Id
@@ -33,7 +30,7 @@ public class Comment {
   @Column(name = "user_name")
   private String userName;
   @JoinColumn(name = "book_id")
-  @ManyToOne(cascade = CascadeType.ALL, targetEntity = Book.class, fetch = FetchType.EAGER)
+  @ManyToOne(cascade = CascadeType.MERGE, targetEntity = Book.class, fetch = FetchType.EAGER)
   private Book book;
 
 }

@@ -4,13 +4,13 @@ import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import java.util.Optional;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,8 +46,8 @@ public class CommentUserApi extends BaseUserApi {
     try {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
-      getLineWriter().writeLine("Comment(s) not found");
-    } catch (DataQueryException e) {
+      getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
+    } catch (DataAccessException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
@@ -70,27 +70,27 @@ public class CommentUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     commentDao.getById(id);
     Comment comment = gatherCommentData(id);
-    commentDao.create(comment);
+    commentDao.save(comment);
     getLineWriter().writeLine("Comment updated");
   }
 
   private void create() {
     Comment comment = gatherCommentData(null);
-    commentDao.create(comment);
+    commentDao.save(comment);
     getLineWriter().writeLine("Comment created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All comments:");
-    printer.print(commentDao.getAll());
+    printer.print(commentDao.findAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    Comment comment = commentDao.getById(id);
+    Optional<Comment> comment = commentDao.findById(id);
     getLineWriter().writeLine("Result:");
-    printer.print(Optional.of(comment));
+    printer.print(comment);
   }
 
   private void deleteById() {
@@ -103,7 +103,9 @@ public class CommentUserApi extends BaseUserApi {
   private Comment gatherCommentData(Long id) {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    Book book = bookDao.getByTitle(title);
+    Book book = bookDao.findByTitle(title)
+                       .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
+
     getLineWriter().writeLine("Enter your comment:");
     String comment = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter your username:");

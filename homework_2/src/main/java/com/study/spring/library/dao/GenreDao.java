@@ -1,15 +1,11 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Genre;
-import java.util.Collection;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface GenreDao {
+public interface GenreDao extends JpaRepository<Genre, Long> {
 
-  Collection<Genre> getAll();
-  long create(Genre genre);
-  Genre getById(Long id);
-  Genre getByName(String name);
-  void update(Genre genre);
-  void deleteById(Long id);
+  Optional<Genre> findByName(String name);
 
 }

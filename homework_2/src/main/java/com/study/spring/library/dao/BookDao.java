@@ -1,15 +1,17 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Book;
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BookDao {
+public interface BookDao extends JpaRepository<Book, Long> {
 
-  Collection<Book> getAll();
-  long create(Book book);
-  Book getById(Long id);
-  Book getByTitle(String title);
-  void update(Book book);
-  void deleteById(Long id);
+  Optional<Book> findByTitle(String title);
+
+  @Override
+  @EntityGraph(attributePaths = {"genre", "author"})
+  List<Book> findAll();
 
 }

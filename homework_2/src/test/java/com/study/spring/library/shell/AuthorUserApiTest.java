@@ -14,13 +14,14 @@ import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import javax.persistence.PersistenceException;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorUserApiTest {
@@ -42,7 +43,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(authorDao).create(any());
+    verify(authorDao).save(any());
   }
 
   @Test
@@ -60,20 +61,20 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(authorDao).getAll();
+    verify(authorDao).findAll();
     verify(authorPrinter).print(anyList());
   }
 
   @Test
   void selectAndPerformOperation_getByIdOption_success() {
     String name = "testName";
-    Author testAuthor = Author.builder().name(name).build();
+    Optional<Author> testAuthor = Optional.of(Author.builder().name(name).build());
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(authorDao.getById(any())).thenReturn(testAuthor);
+    when(authorDao.findById(any())).thenReturn(testAuthor);
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(authorDao).getById(any());
+    verify(authorDao).findById(any());
     verify(authorPrinter).print(testAuthor);
   }
 
@@ -83,7 +84,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(authorDao).getByName(any());
+    verify(authorDao).findByName(any());
   }
 
   @Test
@@ -92,7 +93,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).update(any());
+    verify(authorDao).save(any());
   }
 
   @Test
@@ -107,20 +108,20 @@ class AuthorUserApiTest {
   @Test
   void selectAndPerformOperation_authorNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(EntityNotFoundException.class).when(authorDao).update(any());
+    doThrow(EntityNotFoundException.class).when(authorDao).save(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).update(any());
+    verify(authorDao).save(any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(authorDao).update(any());
+    doThrow(DataIntegrityViolationException.class).when(authorDao).save(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).update(any());
+    verify(authorDao).save(any());
   }
 }

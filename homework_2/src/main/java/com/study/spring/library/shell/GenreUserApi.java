@@ -8,7 +8,7 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import java.util.Optional;
-import javax.persistence.PersistenceException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +42,7 @@ public class GenreUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Genre(s) not found");
-    } catch (PersistenceException e) {
+    } catch (DataAccessException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
@@ -55,7 +55,7 @@ public class GenreUserApi extends BaseUserApi {
       case "deleteById" -> deleteById();
       case "getAll" -> getAll();
       case "getById" -> getByid();
-      case "getByName" -> getIdByName();
+      case "getByName" -> getByName();
       case "update" -> update();
       default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
@@ -66,35 +66,35 @@ public class GenreUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     getLineWriter().writeLine("Enter genre name:");
     String name = getUserInputReader().readLine();
-    genreDao.update(new Genre(id, name));
+    genreDao.save(new Genre(id, name));
     getLineWriter().writeLine("Genre updated");
   }
 
   private void create() {
     getLineWriter().writeLine("Enter new genre:");
     String name = getUserInputReader().readLine();
-    genreDao.create(Genre.builder().name(name).build());
+    genreDao.save(Genre.builder().name(name).build());
     getLineWriter().writeLine("Genre created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All genres:");
-    printer.print(genreDao.getAll());
+    printer.print(genreDao.findAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter genre id:");
     long id = getUserInputReader().readLongFromLine();
-    Genre genre = genreDao.getById(id);
+    Optional<Genre> genre = genreDao.findById(id);
     getLineWriter().writeLine("Result:");
-    printer.print(Optional.of(genre));
+    printer.print(genre);
   }
 
-  private void getIdByName() {
+  private void getByName() {
     getLineWriter().writeLine("Enter genre name:");
     String name = getUserInputReader().readLine();
-    Genre genre = genreDao.getByName(name);
-    printer.print(Optional.of(genre));
+    Optional<Genre> genre = genreDao.findByName(name);
+    printer.print(genre);
   }
 
   private void deleteById() {
