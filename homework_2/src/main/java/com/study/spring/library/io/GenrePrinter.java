@@ -22,4 +22,9 @@ public class GenrePrinter extends Printer<Genre> {
   protected void printHeader() {
     lineWriter.writeLine(HEADER);
   }
+
+  @Override
+  protected void printEntityNotFound() {
+    lineWriter.writeLine("Genre(s) not found");
+  }
 }

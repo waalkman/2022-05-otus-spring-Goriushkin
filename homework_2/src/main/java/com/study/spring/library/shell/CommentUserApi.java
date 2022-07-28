@@ -10,23 +10,14 @@ import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CommentUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[CommentDao.class.getDeclaredMethods().length];
-
-  static {
-    Arrays.stream(CommentDao.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {"create", "deleteById", "getAll", "getById", "update"};
 
   private final CommentDao commentDao;
   private final BookDao bookDao;
@@ -62,25 +53,15 @@ public class CommentUserApi extends BaseUserApi {
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case "create" -> create();
+      case "deleteById" -> deleteById();
+      case "getAll" -> getAll();
+      case "getById" -> getByid();
+      case "update" -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -109,7 +90,7 @@ public class CommentUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     Comment comment = commentDao.getById(id);
     getLineWriter().writeLine("Result:");
-    printer.print(comment);
+    printer.print(Optional.of(comment));
   }
 
   private void deleteById() {

@@ -11,23 +11,15 @@ import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class BookUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[BookDao.class.getDeclaredMethods().length];
-  static {
-    Arrays.stream(BookDao.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {"create", "deleteById", "getAll", "getById", "getByTitle", "update"};
 
   private final BookDao bookDao;
   private final AuthorDao authorDao;
@@ -66,28 +58,16 @@ public class BookUserApi extends BaseUserApi {
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "getByTitle":
-        getByTitle();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case "create" -> create();
+      case "deleteById" -> deleteById();
+      case "getAll" -> getAll();
+      case "getById" -> getByid();
+      case "getByTitle" -> getByTitle();
+      case "update" -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -115,13 +95,13 @@ public class BookUserApi extends BaseUserApi {
     Genre genre = genreDao.getByName(genreName);
     getLineWriter().writeLine("Enter book author:");
     String authorName = getUserInputReader().readLine();
-    Author author = authorDao.getByName(authorName);
+    Optional<Author> author = authorDao.findByName(authorName);
     return Book.builder()
                .id(id)
                .title(title)
                .description(description)
                .genre(genre)
-               .author(author)
+               .author(author.orElseThrow(() -> new EntityNotFoundException("Author not found", "Author")))
                .build();
   }
 
@@ -134,14 +114,14 @@ public class BookUserApi extends BaseUserApi {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
     Book book = bookDao.getById(id);
-    bookPrinter.print(book);
+    bookPrinter.print(Optional.of(book));
   }
 
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
     Book book = bookDao.getByTitle(title);
-    bookPrinter.print(book);
+    bookPrinter.print(Optional.of(book));
   }
 
   private void deleteById() {

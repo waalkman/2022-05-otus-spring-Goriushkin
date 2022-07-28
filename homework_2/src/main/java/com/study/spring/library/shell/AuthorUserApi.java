@@ -7,23 +7,15 @@ import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import javax.persistence.PersistenceException;
+import java.util.Optional;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[AuthorDao.class.getDeclaredMethods().length];
-  static {
-    Arrays.stream(AuthorDao.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {"create", "deleteById", "getAll", "getById", "getByName", "update"};
 
   private final AuthorDao authorDao;
   private final Printer<Author> authorPrinter;
@@ -50,34 +42,22 @@ public class AuthorUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
-    } catch (PersistenceException e) {
-      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
+    } catch (DataAccessException e) {
+      getLineWriter().writeLine(String.format("Error executing operation %s", e.getCause().getCause().getMessage()));
     }
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "getByName":
-        getIdByName();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case "create" -> create();
+      case "deleteById" -> deleteById();
+      case "getAll" -> getAll();
+      case "getById" -> getByid();
+      case "getByName" -> getIdByName();
+      case "update" -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -86,32 +66,32 @@ public class AuthorUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorDao.update(new Author(id, name));
+    authorDao.save(new Author(id, name));
     getLineWriter().writeLine("Author updated");
   }
 
   private void create() {
     getLineWriter().writeLine("Enter new author name:");
     String name = getUserInputReader().readLine();
-    authorDao.create(Author.builder().name(name).build());
+    authorDao.save(Author.builder().name(name).build());
     getLineWriter().writeLine("Author created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All authors:");
-    authorPrinter.print(authorDao.getAll());
+    authorPrinter.print(authorDao.findAll());
   }
 
   private void getIdByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorPrinter.print(authorDao.getByName(name));
+    authorPrinter.print(authorDao.findByName(name));
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    Author author = authorDao.getById(id);
+    Optional<Author> author = authorDao.findById(id);
     getLineWriter().writeLine("Result:");
     authorPrinter.print(author);
   }
