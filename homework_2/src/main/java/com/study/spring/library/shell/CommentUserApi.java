@@ -4,7 +4,6 @@ import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -13,7 +12,9 @@ import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CommentUserApi extends BaseUserApi {
@@ -56,12 +57,13 @@ public class CommentUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Comment(s) not found");
-    } catch (DataQueryException e) {
+    } catch (PersistenceException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
