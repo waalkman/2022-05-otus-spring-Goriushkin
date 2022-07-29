@@ -2,7 +2,6 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -11,7 +10,9 @@ import com.study.spring.library.io.UserInputReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
@@ -50,12 +51,13 @@ public class AuthorUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
-    } catch (DataQueryException e) {
+    } catch (PersistenceException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
@@ -70,7 +72,7 @@ public class AuthorUserApi extends BaseUserApi {
       case "getById":
         getByid();
         break;
-      case "getIdByName":
+      case "getByName":
         getIdByName();
         break;
       case "deleteById":
@@ -105,9 +107,7 @@ public class AuthorUserApi extends BaseUserApi {
   private void getIdByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    Long id = authorDao.getIdByName(name);
-    getLineWriter().writeLine("Result:");
-    getLineWriter().writeLine(id + "");
+    authorPrinter.print(authorDao.getByName(name));
   }
 
   private void getByid() {

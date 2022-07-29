@@ -10,11 +10,11 @@ import static org.mockito.Mockito.when;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
+import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -78,12 +78,12 @@ class AuthorUserApiTest {
   }
 
   @Test
-  void selectAndPerformOperation_getIdByNameOption_success() {
+  void selectAndPerformOperation_getByNameOption_success() {
     when(userInputReader.readIntFromLine()).thenReturn(5);
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).getIdByName(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(authorDao).getByName(any());
   }
 
   @Test
@@ -117,7 +117,7 @@ class AuthorUserApiTest {
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(DataQueryException.class).when(authorDao).update(any());
+    doThrow(PersistenceException.class).when(authorDao).update(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());

@@ -8,7 +8,7 @@ public interface GenreDao {
   Collection<Genre> getAll();
   long create(Genre genre);
   Genre getById(Long id);
-  Long getIdByName(String name);
+  Genre getByName(String name);
   void update(Genre genre);
   void deleteById(Long id);
 

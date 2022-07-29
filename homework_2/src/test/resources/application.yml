@@ -1,11 +1,18 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/libraryDB
-    username: dbuser
-    password: userPASS
-    driver-class-name: "org.postgresql.Driver"
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
   liquibase:
     enabled: true
     change-log: "classpath:/db/changelog/db.changelog-master.yml"
   main:
     allow-circular-references: true
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    database: h2

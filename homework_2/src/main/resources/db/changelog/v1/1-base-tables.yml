@@ -9,7 +9,6 @@ databaseChangeLog:
               name: id
               type: bigint
               autoIncrement: true
-              startWith: 5
               constraints:
                 nullable: false
                 primaryKey: true
@@ -27,7 +26,6 @@ databaseChangeLog:
               name: id
               type: bigint
               autoIncrement: true
-              startWith: 6
               constraints:
                 nullable: false
                 primaryKey: true
@@ -46,7 +44,6 @@ databaseChangeLog:
                   name: id
                   type: bigint
                   autoIncrement: true
-                  startWith: 3
                   constraints:
                     nullable: false
                     primaryKey: true

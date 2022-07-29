@@ -4,6 +4,11 @@ spring:
     username: dbuser
     password: userPASS
     driver-class-name: "org.postgresql.Driver"
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
   liquibase:
     enabled: true
     change-log: "classpath:/db/changelog/db.changelog-master.yml"

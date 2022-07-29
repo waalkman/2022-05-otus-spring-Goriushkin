@@ -8,7 +8,7 @@ public interface AuthorDao {
   Collection<Author> getAll();
   long create(Author author);
   Author getById(Long id);
-  Long getIdByName(String name);
+  Author getByName(String name);
   void update(Author author);
   void deleteById(Long id);
 

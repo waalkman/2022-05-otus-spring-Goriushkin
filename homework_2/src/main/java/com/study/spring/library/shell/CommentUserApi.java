@@ -1,7 +1,9 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.GenreDao;
-import com.study.spring.library.domain.Genre;
+import com.study.spring.library.dao.BookDao;
+import com.study.spring.library.dao.CommentDao;
+import com.study.spring.library.domain.Book;
+import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -15,28 +17,32 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class GenreUserApi extends BaseUserApi {
+public class CommentUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[GenreDao.class.getDeclaredMethods().length];
+  private static final String[] OPTIONS = new String[CommentDao.class.getDeclaredMethods().length];
+
   static {
-    Arrays.stream(GenreDao.class.getDeclaredMethods())
+    Arrays.stream(CommentDao.class.getDeclaredMethods())
           .map(Method::getName)
           .sorted()
           .collect(Collectors.toList())
           .toArray(OPTIONS);
   }
 
-  private final GenreDao genreDao;
-  private final Printer<Genre> printer;
+  private final CommentDao commentDao;
+  private final BookDao bookDao;
+  private final Printer<Comment> printer;
 
-  public GenreUserApi(
+  public CommentUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
-      GenreDao genreDao,
-      Printer<Genre> printer) {
+      CommentDao commentDao,
+      BookDao bookDao,
+      Printer<Comment> printer) {
 
     super(userInputReader, lineWriter);
-    this.genreDao = genreDao;
+    this.commentDao = commentDao;
+    this.bookDao = bookDao;
     this.printer = printer;
   }
 
@@ -50,7 +56,7 @@ public class GenreUserApi extends BaseUserApi {
     try {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
-      getLineWriter().writeLine("Genre(s) not found");
+      getLineWriter().writeLine("Comment(s) not found");
     } catch (PersistenceException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
@@ -72,9 +78,6 @@ public class GenreUserApi extends BaseUserApi {
       case "getById":
         getByid();
         break;
-      case "getByName":
-        getIdByName();
-        break;
       case "deleteById":
         deleteById();
         break;
@@ -84,46 +87,55 @@ public class GenreUserApi extends BaseUserApi {
   }
 
   private void update() {
-    getLineWriter().writeLine("Enter genre id:");
+    getLineWriter().writeLine("Enter comment id");
     long id = getUserInputReader().readLongFromLine();
-    getLineWriter().writeLine("Enter genre name:");
-    String name = getUserInputReader().readLine();
-    genreDao.update(new Genre(id, name));
-    getLineWriter().writeLine("Genre updated");
+    commentDao.getById(id);
+    Comment comment = gatherCommentData(id);
+    commentDao.create(comment);
+    getLineWriter().writeLine("Comment updated");
   }
 
   private void create() {
-    getLineWriter().writeLine("Enter new genre:");
-    String name = getUserInputReader().readLine();
-    genreDao.create(Genre.builder().name(name).build());
-    getLineWriter().writeLine("Genre created");
+    Comment comment = gatherCommentData(null);
+    commentDao.create(comment);
+    getLineWriter().writeLine("Comment created");
   }
 
   private void getAll() {
-    getLineWriter().writeLine("All genres:");
-    printer.print(genreDao.getAll());
+    getLineWriter().writeLine("All comments:");
+    printer.print(commentDao.getAll());
   }
 
   private void getByid() {
-    getLineWriter().writeLine("Enter genre id:");
+    getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    Genre genre = genreDao.getById(id);
+    Comment comment = commentDao.getById(id);
     getLineWriter().writeLine("Result:");
-    printer.print(genre);
-  }
-
-  private void getIdByName() {
-    getLineWriter().writeLine("Enter genre name:");
-    String name = getUserInputReader().readLine();
-    Genre genre = genreDao.getByName(name);
-    printer.print(genre);
+    printer.print(comment);
   }
 
   private void deleteById() {
-    getLineWriter().writeLine("Enter genre id:");
+    getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    genreDao.deleteById(id);
+    commentDao.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
+  }
+
+  private Comment gatherCommentData(Long id) {
+    getLineWriter().writeLine("Enter book title:");
+    String title = getUserInputReader().readLine();
+    Book book = bookDao.getByTitle(title);
+    getLineWriter().writeLine("Enter your comment:");
+    String comment = getUserInputReader().readLine();
+    getLineWriter().writeLine("Enter your username:");
+    String username = getUserInputReader().readLine();
+
+    return Comment.builder()
+                  .id(id)
+                  .book(book)
+                  .userName(username)
+                  .text(comment)
+                  .build();
   }
 
 }

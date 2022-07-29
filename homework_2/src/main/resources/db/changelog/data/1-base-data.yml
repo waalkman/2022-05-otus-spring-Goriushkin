@@ -3,7 +3,7 @@ databaseChangeLog:
       id: default-authors
       author: waalkman
       runOnChange: true
-      loadUpdateData:
+      loadData:
         primaryKey: id
         file: data/authors.csv
         relativeToChangelogFile: true
@@ -15,7 +15,7 @@ databaseChangeLog:
       id: default-genres
       author: waalkman
       runOnChange: true
-      loadUpdateData:
+      loadData:
         primaryKey: id
         file: data/genres.csv
         relativeToChangelogFile: true
@@ -27,7 +27,7 @@ databaseChangeLog:
       id: default-books
       author: waalkman
       runOnChange: true
-      loadUpdateData:
+      loadData:
         primaryKey: id
         file: data/books.csv
         relativeToChangelogFile: true
