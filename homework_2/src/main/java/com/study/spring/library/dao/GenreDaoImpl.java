@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 public class GenreDaoImpl implements GenreDao {
 
@@ -19,17 +19,20 @@ public class GenreDaoImpl implements GenreDao {
   private final EntityManager em;
 
   @Override
+  @Transactional(readOnly = true)
   public Collection<Genre> getAll() {
     TypedQuery<Genre> genreQuery = em.createQuery("select g from Genre g", Genre.class);
     return genreQuery.getResultList();
   }
 
   @Override
+  @Transactional
   public long create(Genre genre) {
     return save(genre);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Genre getById(Long id) {
     Genre genre = em.find(Genre.class, id);
     if (genre == null) {
@@ -40,6 +43,7 @@ public class GenreDaoImpl implements GenreDao {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Genre getByName(String name) {
     TypedQuery<Genre> genreQuery = em.createQuery("select g from Genre g where g.name = :name", Genre.class);
     genreQuery.setParameter("name", name);
@@ -53,15 +57,16 @@ public class GenreDaoImpl implements GenreDao {
   }
 
   @Override
+  @Transactional
   public void update(Genre genre) {
     save(genre);
   }
 
   @Override
+  @Transactional
   public void deleteById(Long id) {
-    Query genreQuery = em.createQuery("delete from Genre g where g.id = :id");
-    genreQuery.setParameter("id", id);
-    genreQuery.executeUpdate();
+    Genre genre = getById(id);
+    em.remove(genre);
   }
 
   private long save(Genre genre) {

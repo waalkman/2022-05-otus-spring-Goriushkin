@@ -1,11 +1,8 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
-import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.Genre;
+import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -16,7 +13,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class BookUserApi extends BaseUserApi {
@@ -31,23 +27,20 @@ public class BookUserApi extends BaseUserApi {
   }
 
   private final BookDao bookDao;
-  private final AuthorDao authorDao;
-  private final GenreDao genreDao;
   private final Printer<Book> bookPrinter;
+  private final Printer<Comment> commentPrinter;
 
   public BookUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
       BookDao bookDao,
-      AuthorDao authorDao,
-      GenreDao genreDao,
-      Printer<Book> bookPrinter) {
+      Printer<Book> bookPrinter,
+      Printer<Comment> commentPrinter) {
 
     super(userInputReader, lineWriter);
-    this.authorDao = authorDao;
-    this.genreDao = genreDao;
     this.bookDao = bookDao;
     this.bookPrinter = bookPrinter;
+    this.commentPrinter = commentPrinter;
   }
 
   @Override
@@ -67,7 +60,6 @@ public class BookUserApi extends BaseUserApi {
   }
 
   @Override
-  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":
@@ -97,13 +89,17 @@ public class BookUserApi extends BaseUserApi {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
     Book book = gatherBookData(id);
-    bookDao.update(book);
+    String genre = requestGenre();
+    String author = requestAuthor();
+    bookDao.update(book, genre, author);
     getLineWriter().writeLine("Book updated");
   }
 
   private void create() {
     Book book = gatherBookData(null);
-    bookDao.create(book);
+    String genre = requestGenre();
+    String author = requestAuthor();
+    bookDao.create(book, genre, author);
     getLineWriter().writeLine("Book created");
   }
 
@@ -112,19 +108,21 @@ public class BookUserApi extends BaseUserApi {
     String title = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter book description:");
     String description = getUserInputReader().readLine();
-    getLineWriter().writeLine("Enter book genre:");
-    String genreName = getUserInputReader().readLine();
-    Genre genre = genreDao.getByName(genreName);
-    getLineWriter().writeLine("Enter book author:");
-    String authorName = getUserInputReader().readLine();
-    Author author = authorDao.getByName(authorName);
     return Book.builder()
                .id(id)
                .title(title)
                .description(description)
-               .genre(genre)
-               .author(author)
                .build();
+  }
+
+  private String requestGenre() {
+    getLineWriter().writeLine("Enter book genre:");
+    return getUserInputReader().readLine();
+  }
+
+  private String requestAuthor() {
+    getLineWriter().writeLine("Enter book author:");
+    return getUserInputReader().readLine();
   }
 
   private void getAll() {
@@ -137,6 +135,8 @@ public class BookUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     Book book = bookDao.getById(id);
     bookPrinter.print(book);
+    getLineWriter().writeLine("Book comments:");
+    commentPrinter.print(book.getComments());
   }
 
   private void getByTitle() {
@@ -144,6 +144,8 @@ public class BookUserApi extends BaseUserApi {
     String title = getUserInputReader().readLine();
     Book book = bookDao.getByTitle(title);
     bookPrinter.print(book);
+    getLineWriter().writeLine("Book comments:");
+    commentPrinter.print(book.getComments());
   }
 
   private void deleteById() {

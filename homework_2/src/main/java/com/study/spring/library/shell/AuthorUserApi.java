@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
@@ -57,7 +56,6 @@ public class AuthorUserApi extends BaseUserApi {
   }
 
   @Override
-  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
       case "update":

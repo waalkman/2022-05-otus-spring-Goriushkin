@@ -15,11 +15,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(CommentDaoImpl.class)
+@Import({CommentDaoImpl.class, BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
 class CommentDaoImplTest {
 
   @Autowired
-  private CommentDaoImpl commentDao;
+  private CommentDao commentDao;
   @Autowired
   private TestEntityManager em;
 
@@ -32,14 +32,14 @@ class CommentDaoImplTest {
 
   @Test
   void create_success() {
-    Book book = DaoTestUtils.createBook(em, "Book title", "Book description");
+    Book book = DaoTestUtils.createBook(em, DaoTestUtils.TEST_BOOK_TITLE, DaoTestUtils.TEST_BOOK_DESCR);
     Comment comment = Comment.builder()
                              .text("Comment text")
                              .userName("Comment author")
                              .book(book)
                              .build();
 
-    long commentId = commentDao.create(comment);
+    long commentId = commentDao.create(comment, DaoTestUtils.TEST_BOOK_TITLE);
 
     Comment commentFromDb = em.find(Comment.class, commentId);
     assertEquals(comment, commentFromDb);
@@ -47,14 +47,14 @@ class CommentDaoImplTest {
 
   @Test
   void create_tooLongUsername_success() {
-    Book book = DaoTestUtils.createBook(em, "Book title", "Book description");
+    Book book = DaoTestUtils.createBook(em, DaoTestUtils.TEST_BOOK_TITLE, DaoTestUtils.TEST_BOOK_DESCR);
     Comment comment = Comment.builder()
                              .text("Comment text")
                              .userName("Comment author that is veeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong")
                              .book(book)
                              .build();
 
-    assertThrows(PersistenceException.class, () -> commentDao.create(comment));
+    assertThrows(PersistenceException.class, () -> commentDao.create(comment, DaoTestUtils.TEST_BOOK_TITLE));
   }
 
   @Test
@@ -81,7 +81,7 @@ class CommentDaoImplTest {
     createdComment.setText(text);
     createdComment.setUserName(userName);
 
-    commentDao.update(createdComment);
+    commentDao.update(createdComment, DaoTestUtils.TEST_BOOK_TITLE);
 
     Comment updatedComment = em.find(Comment.class, createdComment.getId());
 

@@ -48,7 +48,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(12)).writeLine(any());
-    verify(bookDao).create(any());
+    verify(bookDao).create(any(), any(), any());
   }
 
   @Test
@@ -78,7 +78,7 @@ class BookUserApiTest {
     when(bookDao.getById(any())).thenReturn(testBook);
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(8)).writeLine(any());
+    verify(lineWriter, times(9)).writeLine(any());
     verify(bookDao).getById(any());
   }
 
@@ -88,7 +88,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any());
+    verify(bookDao).update(any(), any(), any());
   }
 
   @Test
@@ -103,20 +103,20 @@ class BookUserApiTest {
   @Test
   void selectAndPerformOperation_bookNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(EntityNotFoundException.class).when(bookDao).update(any());
+    doThrow(EntityNotFoundException.class).when(bookDao).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any());
+    verify(bookDao).update(any(), any(), any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(bookDao).update(any());
+    doThrow(PersistenceException.class).when(bookDao).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any());
+    verify(bookDao).update(any(), any(), any());
   }
 }

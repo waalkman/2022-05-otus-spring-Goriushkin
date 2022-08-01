@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 class BookDaoImplTest {
 
   @Autowired
-  private BookDaoImpl bookDao;
+  private BookDao bookDao;
   @Autowired
   private TestEntityManager em;
 
@@ -65,7 +65,7 @@ class BookDaoImplTest {
     newBookData.setTitle(newTitle);
     newBookData.setDescription(newDescription);
 
-    bookDao.update(newBookData);
+    bookDao.update(newBookData, DaoTestUtils.TEST_GENRE, DaoTestUtils.TEST_AUTHOR);
 
     Book bookFromDb = em.find(Book.class, newBookData.getId());
 
@@ -80,7 +80,9 @@ class BookDaoImplTest {
 
     newBookData.setId(Long.MAX_VALUE);
 
-    assertThrows(EntityNotFoundException.class, () -> bookDao.update(newBookData));
+    assertThrows(
+        EntityNotFoundException.class,
+        () -> bookDao.update(newBookData, DaoTestUtils.TEST_GENRE, DaoTestUtils.TEST_AUTHOR));
   }
 
   @Test

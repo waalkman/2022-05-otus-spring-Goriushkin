@@ -1,13 +1,10 @@
 package com.study.spring.library.domain;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
@@ -15,7 +12,9 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Table(name = "comments")
@@ -32,8 +31,9 @@ public class Comment {
   private String text;
   @Column(name = "user_name")
   private String userName;
-  @JoinColumn(name = "book_id")
-  @ManyToOne(cascade = CascadeType.ALL, targetEntity = Book.class, fetch = FetchType.EAGER)
+  @ManyToOne
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
   private Book book;
 
 }

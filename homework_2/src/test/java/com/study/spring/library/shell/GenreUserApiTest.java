@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Genre;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
