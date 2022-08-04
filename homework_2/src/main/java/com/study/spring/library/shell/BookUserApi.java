@@ -1,6 +1,5 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
@@ -8,6 +7,7 @@ import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.service.BookService;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -17,28 +17,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class BookUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[BookDao.class.getDeclaredMethods().length];
+  private static final String[] OPTIONS = new String[BookService.class.getDeclaredMethods().length];
   static {
-    Arrays.stream(BookDao.class.getDeclaredMethods())
+    Arrays.stream(BookService.class.getDeclaredMethods())
           .map(Method::getName)
           .sorted()
           .collect(Collectors.toList())
           .toArray(OPTIONS);
   }
 
-  private final BookDao bookDao;
+  private final BookService bookService;
   private final Printer<Book> bookPrinter;
   private final Printer<Comment> commentPrinter;
 
   public BookUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
-      BookDao bookDao,
+      BookService bookService,
       Printer<Book> bookPrinter,
       Printer<Comment> commentPrinter) {
 
     super(userInputReader, lineWriter);
-    this.bookDao = bookDao;
+    this.bookService = bookService;
     this.bookPrinter = bookPrinter;
     this.commentPrinter = commentPrinter;
   }
@@ -91,7 +91,7 @@ public class BookUserApi extends BaseUserApi {
     Book book = gatherBookData(id);
     String genre = requestGenre();
     String author = requestAuthor();
-    bookDao.update(book, genre, author);
+    bookService.update(book, genre, author);
     getLineWriter().writeLine("Book updated");
   }
 
@@ -99,7 +99,7 @@ public class BookUserApi extends BaseUserApi {
     Book book = gatherBookData(null);
     String genre = requestGenre();
     String author = requestAuthor();
-    bookDao.create(book, genre, author);
+    bookService.create(book, genre, author);
     getLineWriter().writeLine("Book created");
   }
 
@@ -127,13 +127,13 @@ public class BookUserApi extends BaseUserApi {
 
   private void getAll() {
     getLineWriter().writeLine("All books:");
-    bookPrinter.print(bookDao.getAll());
+    bookPrinter.print(bookService.getAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
-    Book book = bookDao.getById(id);
+    Book book = bookService.getById(id);
     bookPrinter.print(book);
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());
@@ -142,7 +142,7 @@ public class BookUserApi extends BaseUserApi {
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    Book book = bookDao.getByTitle(title);
+    Book book = bookService.getByTitle(title);
     bookPrinter.print(book);
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());
@@ -151,7 +151,7 @@ public class BookUserApi extends BaseUserApi {
   private void deleteById() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
-    bookDao.deleteById(id);
+    bookService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }
 

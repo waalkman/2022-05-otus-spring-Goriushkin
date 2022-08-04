@@ -9,7 +9,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -19,20 +18,12 @@ public class AuthorDaoImpl implements AuthorDao {
   private final EntityManager em;
 
   @Override
-  @Transactional(readOnly = true)
   public Collection<Author> getAll() {
     TypedQuery<Author> authorQuery = em.createQuery("select a from Author a", Author.class);
     return authorQuery.getResultList();
   }
 
   @Override
-  @Transactional
-  public long create(Author author) {
-    return save(author);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Author getById(Long id) {
     Author author = em.find(Author.class, id);
     if (author == null) {
@@ -43,7 +34,6 @@ public class AuthorDaoImpl implements AuthorDao {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Author getByName(String name) {
     TypedQuery<Author> authorQuery = em.createQuery("select a from Author a where a.name = :name", Author.class);
     authorQuery.setParameter("name", name);
@@ -57,19 +47,13 @@ public class AuthorDaoImpl implements AuthorDao {
   }
 
   @Override
-  @Transactional
-  public void update(Author author) {
-    save(author);
-  }
-
-  @Override
-  @Transactional
   public void deleteById(Long id) {
     Author author = getById(id);
     em.remove(author);
   }
 
-  private long save(Author author) {
+  @Override
+  public long save(Author author) {
     if (author.getId() == null) {
       em.persist(author);
     } else if (em.find(Author.class, author.getId()) != null) {

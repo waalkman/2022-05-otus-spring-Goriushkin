@@ -1,14 +1,15 @@
-package com.study.spring.library.dao;
+package com.study.spring.library.service;
 
 import com.study.spring.library.domain.Genre;
 import java.util.Collection;
 
-public interface GenreDao {
+public interface GenreService {
 
   Collection<Genre> getAll();
-  long save(Genre genre);
+  long create(Genre genre);
   Genre getById(Long id);
   Genre getByName(String name);
+  void update(Genre genre);
   void deleteById(Long id);
 
 }

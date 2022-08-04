@@ -8,14 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.AuthorDao;
-import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.service.BookService;
 import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +30,7 @@ class BookUserApiTest {
   @Spy
   private LineWriter lineWriter;
   @Spy
-  private BookDao bookDao;
-  @Spy
-  private GenreDao genreDao;
-  @Spy
-  private AuthorDao authorDao;
+  private BookService bookService;
   @Mock
   private Printer<Book> bookPrinter;
   @InjectMocks
@@ -48,7 +42,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(12)).writeLine(any());
-    verify(bookDao).create(any(), any(), any());
+    verify(bookService).create(any(), any(), any());
   }
 
   @Test
@@ -57,7 +51,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(bookDao).deleteById(any());
+    verify(bookService).deleteById(any());
   }
 
   @Test
@@ -66,7 +60,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(bookDao).getAll();
+    verify(bookService).getAll();
     verify(bookPrinter).print(anyList());
   }
 
@@ -75,11 +69,11 @@ class BookUserApiTest {
     String name = "testName";
     Book testBook = Book.builder().title(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(bookDao.getById(any())).thenReturn(testBook);
+    when(bookService.getById(any())).thenReturn(testBook);
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(bookDao).getById(any());
+    verify(bookService).getById(any());
   }
 
   @Test
@@ -88,7 +82,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any(), any(), any());
+    verify(bookService).update(any(), any(), any());
   }
 
   @Test
@@ -97,26 +91,26 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verifyNoInteractions(bookDao);
+    verifyNoInteractions(bookService);
   }
 
   @Test
   void selectAndPerformOperation_bookNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(EntityNotFoundException.class).when(bookDao).update(any(), any(), any());
+    doThrow(EntityNotFoundException.class).when(bookService).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any(), any(), any());
+    verify(bookService).update(any(), any(), any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(bookDao).update(any(), any(), any());
+    doThrow(PersistenceException.class).when(bookService).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).update(any(), any(), any());
+    verify(bookService).update(any(), any(), any());
   }
 }

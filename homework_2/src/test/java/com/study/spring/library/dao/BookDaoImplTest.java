@@ -65,7 +65,7 @@ class BookDaoImplTest {
     newBookData.setTitle(newTitle);
     newBookData.setDescription(newDescription);
 
-    bookDao.update(newBookData, DaoTestUtils.TEST_GENRE, DaoTestUtils.TEST_AUTHOR);
+    bookDao.save(newBookData);
 
     Book bookFromDb = em.find(Book.class, newBookData.getId());
 
@@ -80,9 +80,7 @@ class BookDaoImplTest {
 
     newBookData.setId(Long.MAX_VALUE);
 
-    assertThrows(
-        EntityNotFoundException.class,
-        () -> bookDao.update(newBookData, DaoTestUtils.TEST_GENRE, DaoTestUtils.TEST_AUTHOR));
+    assertThrows(EntityNotFoundException.class, () -> bookDao.save(newBookData));
   }
 
   @Test

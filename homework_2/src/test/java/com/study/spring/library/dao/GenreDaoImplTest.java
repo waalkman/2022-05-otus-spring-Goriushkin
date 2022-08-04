@@ -33,7 +33,7 @@ class GenreDaoImplTest {
   void create_success() {
     String name = "some name";
     Genre genre = Genre.builder().name(name).build();
-    long id = genreDao.create(genre);
+    long id = genreDao.save(genre);
     Genre createdGenre = em.find(Genre.class, id);
     assertEquals(genre, createdGenre);
   }
@@ -42,7 +42,7 @@ class GenreDaoImplTest {
   void create_tooLongName_success() {
     String name = "some name that is veeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong";
     Genre genre = Genre.builder().name(name).build();
-    assertThrows(PersistenceException.class, () -> genreDao.create(genre));
+    assertThrows(PersistenceException.class, () -> genreDao.save(genre));
   }
 
   @Test
@@ -73,7 +73,7 @@ class GenreDaoImplTest {
     em.detach(createdGenre);
     createdGenre.setName(newName);
 
-    genreDao.update(createdGenre);
+    genreDao.save(createdGenre);
     Genre updatedGenre = em.find(Genre.class, createdGenre.getId());
     assertEquals(newName, updatedGenre.getName());
   }

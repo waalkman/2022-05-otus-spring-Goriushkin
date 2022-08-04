@@ -39,7 +39,7 @@ class CommentDaoImplTest {
                              .book(book)
                              .build();
 
-    long commentId = commentDao.create(comment, DaoTestUtils.TEST_BOOK_TITLE);
+    long commentId = commentDao.save(comment);
 
     Comment commentFromDb = em.find(Comment.class, commentId);
     assertEquals(comment, commentFromDb);
@@ -54,7 +54,7 @@ class CommentDaoImplTest {
                              .book(book)
                              .build();
 
-    assertThrows(PersistenceException.class, () -> commentDao.create(comment, DaoTestUtils.TEST_BOOK_TITLE));
+    assertThrows(PersistenceException.class, () -> commentDao.save(comment));
   }
 
   @Test
@@ -81,7 +81,7 @@ class CommentDaoImplTest {
     createdComment.setText(text);
     createdComment.setUserName(userName);
 
-    commentDao.update(createdComment, DaoTestUtils.TEST_BOOK_TITLE);
+    commentDao.save(createdComment);
 
     Comment updatedComment = em.find(Comment.class, createdComment.getId());
 

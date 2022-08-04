@@ -33,7 +33,7 @@ class AuthorDaoImplTest {
   void create_success() {
     String name = "some name";
     Author author = Author.builder().name(name).build();
-    long id = authorDao.create(author);
+    long id = authorDao.save(author);
     Author createdAuthor = em.find(Author.class, id);
     assertEquals(author, createdAuthor);
   }
@@ -42,7 +42,7 @@ class AuthorDaoImplTest {
   void create_tooLongName_success() {
     String name = "some name that is veeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong";
     Author author = Author.builder().name(name).build();
-    assertThrows(PersistenceException.class, () -> authorDao.create(author));
+    assertThrows(PersistenceException.class, () -> authorDao.save(author));
   }
 
   @Test
@@ -72,7 +72,7 @@ class AuthorDaoImplTest {
     em.detach(expectedAuthor);
     expectedAuthor.setName(updatedName);
 
-    authorDao.update(expectedAuthor);
+    authorDao.save(expectedAuthor);
 
     Author actualAuthor = em.find(Author.class, expectedAuthor.getId());
 
@@ -86,7 +86,7 @@ class AuthorDaoImplTest {
 
     author.setId(Long.MAX_VALUE);
 
-    assertThrows(EntityNotFoundException.class, () -> authorDao.update(author));
+    assertThrows(EntityNotFoundException.class, () -> authorDao.save(author));
   }
 
   @Test
