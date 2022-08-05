@@ -44,7 +44,7 @@ public class Book {
   private Author author;
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "book", fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "book")
   private List<Comment> comments;
 
 }

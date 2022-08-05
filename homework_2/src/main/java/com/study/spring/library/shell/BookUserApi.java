@@ -2,14 +2,17 @@ package com.study.spring.library.shell;
 
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
+import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.BookService;
+import com.study.spring.library.service.CommentService;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
@@ -55,7 +58,7 @@ public class BookUserApi extends BaseUserApi {
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
     } catch (PersistenceException e) {
-      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
+      getLineWriter().writeLine(String.format("Error executing operation: %s", e.getMessage()));
     }
   }
 
@@ -133,8 +136,8 @@ public class BookUserApi extends BaseUserApi {
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
-    Book book = bookService.getById(id);
-    bookPrinter.print(book);
+    CommentedBook book = bookService.getById(id);
+    bookPrinter.print(book.getBook());
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());
   }
@@ -142,8 +145,8 @@ public class BookUserApi extends BaseUserApi {
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    Book book = bookService.getByTitle(title);
-    bookPrinter.print(book);
+    CommentedBook book = bookService.getByTitle(title);
+    bookPrinter.print(book.getBook());
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());
   }

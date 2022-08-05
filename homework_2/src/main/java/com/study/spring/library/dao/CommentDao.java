@@ -6,6 +6,7 @@ import java.util.Collection;
 public interface CommentDao {
 
   Collection<Comment> getAll();
+  Collection<Comment> getByBookId(Long bookId);
   long save(Comment comment);
   Comment getById(Long id);
   void deleteById(Long id);

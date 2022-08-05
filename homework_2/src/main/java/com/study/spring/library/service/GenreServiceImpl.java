@@ -14,7 +14,6 @@ public class GenreServiceImpl implements GenreService {
   private final GenreDao genreDao;
 
   @Override
-  @Transactional(readOnly = true)
   public Collection<Genre> getAll() {
     return genreDao.getAll();
   }
@@ -26,13 +25,11 @@ public class GenreServiceImpl implements GenreService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Genre getById(Long id) {
     return genreDao.getById(id);
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Genre getByName(String name) {
     return genreDao.getByName(name);
   }

@@ -14,7 +14,6 @@ public class AuthorServiceImpl implements AuthorService {
   private final AuthorDao authorDao;
 
   @Override
-  @Transactional
   public Collection<Author> getAll() {
     return authorDao.getAll();
   }
@@ -26,13 +25,11 @@ public class AuthorServiceImpl implements AuthorService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Author getById(Long id) {
     return authorDao.getById(id);
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Author getByName(String name) {
     return authorDao.getByName(name);
   }

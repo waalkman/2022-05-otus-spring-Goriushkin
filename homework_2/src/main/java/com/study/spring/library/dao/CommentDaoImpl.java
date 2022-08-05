@@ -26,6 +26,13 @@ public class CommentDaoImpl implements CommentDao {
   }
 
   @Override
+  public Collection<Comment> getByBookId(Long bookId) {
+    TypedQuery<Comment> commentQuery = em.createQuery("select c from Comment c where c.book.id = :bookId", Comment.class);
+    commentQuery.setParameter("bookId", bookId);
+    return commentQuery.getResultList();
+  }
+
+  @Override
   public Comment getById(Long id) {
     Comment comment = em.find(Comment.class, id);
     if (comment == null) {

@@ -17,7 +17,6 @@ public class CommentServiceImpl implements CommentService {
   private final BookDao bookDao;
 
   @Override
-  @Transactional(readOnly = true)
   public Collection<Comment> getAll() {
     return commentDao.getAll();
   }
@@ -30,7 +29,6 @@ public class CommentServiceImpl implements CommentService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Comment getById(Long id) {
     return commentDao.getById(id);
   }

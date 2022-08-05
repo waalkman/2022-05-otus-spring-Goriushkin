@@ -2,9 +2,13 @@ package com.study.spring.library.service;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
+import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.domain.Comment;
+import com.study.spring.library.dto.CommentedBook;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +20,9 @@ public class BookServiceImpl implements BookService {
   private final BookDao bookDao;
   private final AuthorDao authorDao;
   private final GenreDao genreDao;
+  private final CommentDao commentDao;
 
   @Override
-  @Transactional(readOnly = true)
   public Collection<Book> getAll() {
     return bookDao.getAll();
   }
@@ -32,14 +36,17 @@ public class BookServiceImpl implements BookService {
 
   @Override
   @Transactional(readOnly = true)
-  public Book getById(Long id) {
-    return bookDao.getById(id);
+  public CommentedBook getById(Long id) {
+    Book book = bookDao.getById(id);
+    Collection<Comment> comments = commentDao.getByBookId(book.getId());
+    return new CommentedBook(book, comments);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Book getByTitle(String title) {
-    return bookDao.getByTitle(title);
+  public CommentedBook getByTitle(String title) {
+    Book book = bookDao.getByTitle(title);
+    return new CommentedBook(book, book.getComments());
   }
 
   @Override

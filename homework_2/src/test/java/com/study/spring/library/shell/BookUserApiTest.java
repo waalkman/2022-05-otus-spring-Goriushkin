@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
@@ -69,7 +70,7 @@ class BookUserApiTest {
     String name = "testName";
     Book testBook = Book.builder().title(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(bookService.getById(any())).thenReturn(testBook);
+    when(bookService.getById(any())).thenReturn(new CommentedBook(testBook, null));
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
