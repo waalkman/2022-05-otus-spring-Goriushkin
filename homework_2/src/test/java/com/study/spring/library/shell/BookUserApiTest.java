@@ -70,7 +70,7 @@ class BookUserApiTest {
     String name = "testName";
     Book testBook = Book.builder().title(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(bookService.getById(any())).thenReturn(new CommentedBook(testBook, null));
+    when(bookService.getById(any())).thenReturn(new CommentedBook(testBook));
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());

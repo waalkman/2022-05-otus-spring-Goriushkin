@@ -2,14 +2,12 @@ package com.study.spring.library.service;
 
 import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.Comment;
 import com.study.spring.library.dto.CommentedBook;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +18,6 @@ public class BookServiceImpl implements BookService {
   private final BookDao bookDao;
   private final AuthorDao authorDao;
   private final GenreDao genreDao;
-  private final CommentDao commentDao;
 
   @Override
   public Collection<Book> getAll() {
@@ -38,15 +35,16 @@ public class BookServiceImpl implements BookService {
   @Transactional(readOnly = true)
   public CommentedBook getById(Long id) {
     Book book = bookDao.getById(id);
-    Collection<Comment> comments = commentDao.getByBookId(book.getId());
-    return new CommentedBook(book, comments);
+    Hibernate.initialize(book.getComments());
+    return new CommentedBook(book);
   }
 
   @Override
   @Transactional(readOnly = true)
   public CommentedBook getByTitle(String title) {
     Book book = bookDao.getByTitle(title);
-    return new CommentedBook(book, book.getComments());
+    Hibernate.initialize(book.getComments());
+    return new CommentedBook(book);
   }
 
   @Override

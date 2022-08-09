@@ -11,8 +11,8 @@ public class CommentedBook {
   private final Book book;
   private final Collection<Comment> comments;
 
-  public CommentedBook(Book book, Collection<Comment> comments) {
+  public CommentedBook(Book book) {
     this.book = book;
-    this.comments = comments;
+    this.comments = book.getComments();
   }
 }
