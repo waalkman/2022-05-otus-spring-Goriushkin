@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: default-comments
+      author: waalkman
+      runOnChange: true
+      loadData:
+        primaryKey: id
+        file: data/comments.csv
+        relativeToChangelogFile: true
+        quotChar: '"'
+        seperator: ','
+        encoding: UTF-8
+        tableName: comments

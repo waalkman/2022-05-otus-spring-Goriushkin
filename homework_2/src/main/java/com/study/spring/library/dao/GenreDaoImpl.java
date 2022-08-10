@@ -1,118 +1,66 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Genre;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class GenreDaoImpl implements GenreDao {
 
-  private final JdbcOperations jdbc;
-  private final NamedParameterJdbcOperations jdbcOperations;
+  @PersistenceContext
+  private final EntityManager em;
 
   @Override
   public Collection<Genre> getAll() {
-    try {
-      return jdbc.query("select id, name from genres", new GenreMapper());
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot get all genres", e);
-    }
-  }
-
-  @Override
-  public long create(Genre genre) {
-    try {
-      KeyHolder keyHolder = new GeneratedKeyHolder();
-      SqlParameterSource sqlParameterSource = new MapSqlParameterSource(Map.of("name", genre.getName()));
-      jdbcOperations.update(
-          "insert into genres (name) values (:name)",
-          sqlParameterSource,
-          keyHolder,
-          new String[] { "id" });
-
-      return keyHolder.getKey() == null ? -1L : keyHolder.getKey().longValue();
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot create genre", e);
-    }
+    TypedQuery<Genre> genreQuery = em.createQuery("select g from Genre g", Genre.class);
+    return genreQuery.getResultList();
   }
 
   @Override
   public Genre getById(Long id) {
-    return findById(id);
-  }
-
-  @Override
-  public Long getIdByName(String name) {
-    try {
-      return jdbcOperations.queryForObject(
-          "select id from genres where name = :name",
-          Map.of("name", name),
-          Long.class);
-    } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Genre not found", e, "Genre");
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot get genre by name", e);
+    Genre genre = em.find(Genre.class, id);
+    if (genre == null) {
+      throw new EntityNotFoundException("Genre not found", "Genre");
+    } else {
+      return genre;
     }
   }
 
   @Override
-  public void update(Genre genre) {
-    findById(genre.getId());
-    try {
-      jdbcOperations.update(
-          "update genres set name = :name where id = :id",
-          Map.of("id", genre.getId(), "name", genre.getName()));
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot update genre", e);
+  public Genre getByName(String name) {
+    TypedQuery<Genre> genreQuery = em.createQuery("select g from Genre g where g.name = :name", Genre.class);
+    genreQuery.setParameter("name", name);
+
+    List<Genre> foundGenres = genreQuery.getResultList();
+    if (foundGenres.size() == 1) {
+      return foundGenres.iterator().next();
+    } else {
+      throw new EntityNotFoundException("Genre not found", "Genre");
     }
   }
 
   @Override
   public void deleteById(Long id) {
-    try {
-      jdbcOperations.update("delete from genres where id = :id", Map.of("id", id));
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot delete genre by id", e);
-    }
+    Genre genre = getById(id);
+    em.remove(genre);
   }
 
-  private Genre findById(Long id) {
-    try {
-      return jdbcOperations.queryForObject(
-          "select id, name from genres where id = :id",
-          Map.of("id", id),
-          new GenreMapper());
-    } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Genre not found", e, "Genre");
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot get genre by id", e);
+  @Override
+  public long save(Genre genre) {
+    if (genre.getId() == null) {
+      em.persist(genre);
+    } else if (em.find(Genre.class, genre.getId()) != null) {
+      em.merge(genre);
+    } else {
+      throw new EntityNotFoundException("Genre not found", "Genre");
     }
-  }
-
-  private static class GenreMapper implements RowMapper<Genre> {
-
-    @Override
-    public Genre mapRow(ResultSet rs, int rowNum) throws SQLException {
-      return Genre.builder()
-                  .id(rs.getLong("id"))
-                  .name(rs.getString("name"))
-                  .build();
-    }
+    return genre.getId();
   }
 }

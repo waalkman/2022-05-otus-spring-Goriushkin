@@ -1,126 +1,71 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Map;
-import liquibase.repackaged.org.apache.commons.lang3.exception.ExceptionUtils;
+import java.util.List;
+import javax.persistence.EntityGraph;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 public class BookDaoImpl implements BookDao {
 
-  private final JdbcOperations jdbc;
-  private final NamedParameterJdbcOperations jdbcOperations;
+  @PersistenceContext
+  private final EntityManager em;
 
   @Override
   public Collection<Book> getAll() {
-    try {
-      return jdbc.query(
-          "select b.id as book_id, b.title, b.description, a.name as author_name, g.name as genre_name "
-              + "from books b "
-              + "join authors a on b.author_id = a.id "
-              + "join genres g on b.genre_id = g.id ",
-          new BookMapper());
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot get all books", e);
-    }
-  }
-
-  @Override
-  public long create(Book book, Long genreId, Long authorId) {
-    try {
-      KeyHolder keyHolder = new GeneratedKeyHolder();
-      SqlParameterSource sqlParameterSource =
-          new MapSqlParameterSource(
-              Map.of(
-                  "title", book.getTitle(),
-                  "description", book.getDescription(),
-                  "genreId", genreId,
-                  "authorId", authorId));
-
-      jdbcOperations.update(
-          "insert into books (title, description, genre_id, author_id) values (:title, :description, :genreId, :authorId)",
-          sqlParameterSource,
-          keyHolder,
-          new String[] { "id" });
-
-      return keyHolder.getKey() == null ? -1L : keyHolder.getKey().longValue();
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot create book", e);
-    }
+    EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
+    TypedQuery<Book> query = em.createQuery("select b from Book b", Book.class);
+    query.setHint("javax.persistence.fetchgraph", entityGraph);
+    return query.getResultList();
   }
 
   @Override
   public Book getById(Long id) {
-    return findById(id);
+    Book book = em.find(Book.class, id);
+    if (book == null) {
+      throw new EntityNotFoundException("Book not found", "Book");
+    } else {
+      return book;
+    }
   }
 
   @Override
-  public void update(Book book, Long genreId, Long authorId) {
-    findById(book.getId());
+  public Book getByTitle(String title) {
+    EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
+    TypedQuery<Book> bookQuery = em.createQuery("select b from Book b where b.title = :title", Book.class);
+    bookQuery.setParameter("title", title);
+    bookQuery.setHint("javax.persistence.fetchgraph", entityGraph);
 
-    jdbcOperations.update(
-        "update books set title = :title, description = :description, genre_id = :genreId, author_id = :authorId where id = :id",
-        Map.of("id", book.getId(),
-               "title", book.getTitle(),
-               "description", book.getDescription(),
-               "genreId", genreId,
-               "authorId", authorId));
+    List<Book> books = bookQuery.getResultList();
+    if (books.size() == 1) {
+      return books.iterator().next();
+    } else {
+      throw new EntityNotFoundException("Book not found", "Book");
+    }
   }
 
   @Override
   public void deleteById(Long id) {
-    try {
-      jdbcOperations.update("delete from books where id = :id", Map.of("id", id));
-    } catch (DataAccessException e) {
-      throw new DataQueryException("Cannot delete book", e);
-    }
+    Book book = getById(id);
+    em.remove(book);
   }
 
-  private Book findById(Long id) {
-    try {
-      return jdbcOperations.queryForObject(
-          "select b.id as book_id, b.title, b.description, a.name as author_name, g.name as genre_name "
-              + "from books b "
-              + "join authors a on b.author_id = a.id "
-              + "join genres g on b.genre_id = g.id "
-              + "where b.id = (:id)",
-          Map.of("id", id),
-          new BookMapper());
-    } catch (IncorrectResultSizeDataAccessException e) {
-      throw new EntityNotFoundException("Book not found", e, "Book");
-    } catch (DataAccessException e) {
-      ExceptionUtils.printRootCauseStackTrace(e);
-      throw new DataQueryException("Cannot get book by id", e);
+  @Override
+  public long save(Book book) {
+    if (book.getId() == null) {
+      em.persist(book);
+    } else if (em.find(Book.class, book.getId()) != null) {
+      em.merge(book);
+    } else {
+      throw new EntityNotFoundException("Book not found", "Book");
     }
-  }
-
-  private static class BookMapper implements RowMapper<Book> {
-
-    @Override
-    public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
-      return Book.builder()
-                 .id(rs.getLong("book_id"))
-                 .title(rs.getString("title"))
-                 .description(rs.getString("description"))
-                 .genre(rs.getString("genre_name"))
-                 .author(rs.getString("author_name"))
-                 .build();
-    }
+    return book.getId();
   }
 }

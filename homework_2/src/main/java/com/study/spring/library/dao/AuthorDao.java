@@ -6,10 +6,9 @@ import java.util.Collection;
 public interface AuthorDao {
 
   Collection<Author> getAll();
-  long create(Author author);
   Author getById(Long id);
-  Long getIdByName(String name);
-  void update(Author author);
+  Author getByName(String name);
   void deleteById(Long id);
+  long save(Author author);
 
 }

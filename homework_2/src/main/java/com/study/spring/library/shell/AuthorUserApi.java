@@ -1,41 +1,41 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
+import com.study.spring.library.service.AuthorService;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[AuthorDao.class.getDeclaredMethods().length];
+  private static final String[] OPTIONS = new String[AuthorService.class.getDeclaredMethods().length];
   static {
-    Arrays.stream(AuthorDao.class.getDeclaredMethods())
+    Arrays.stream(AuthorService.class.getDeclaredMethods())
           .map(Method::getName)
           .sorted()
           .collect(Collectors.toList())
           .toArray(OPTIONS);
   }
 
-  private final AuthorDao authorDao;
+  private final AuthorService authorService;
   private final Printer<Author> authorPrinter;
 
   public AuthorUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
-      AuthorDao authorDao,
+      AuthorService authorService,
       Printer<Author> authorPrinter) {
 
     super(userInputReader, lineWriter);
-    this.authorDao = authorDao;
+    this.authorService = authorService;
     this.authorPrinter = authorPrinter;
   }
 
@@ -50,7 +50,7 @@ public class AuthorUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
-    } catch (DataQueryException e) {
+    } catch (PersistenceException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
@@ -70,7 +70,7 @@ public class AuthorUserApi extends BaseUserApi {
       case "getById":
         getByid();
         break;
-      case "getIdByName":
+      case "getByName":
         getIdByName();
         break;
       case "deleteById":
@@ -86,34 +86,32 @@ public class AuthorUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorDao.update(new Author(id, name));
+    authorService.update(new Author(id, name));
     getLineWriter().writeLine("Author updated");
   }
 
   private void create() {
     getLineWriter().writeLine("Enter new author name:");
     String name = getUserInputReader().readLine();
-    authorDao.create(Author.builder().name(name).build());
+    authorService.create(Author.builder().name(name).build());
     getLineWriter().writeLine("Author created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All authors:");
-    authorPrinter.print(authorDao.getAll());
+    authorPrinter.print(authorService.getAll());
   }
 
   private void getIdByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    Long id = authorDao.getIdByName(name);
-    getLineWriter().writeLine("Result:");
-    getLineWriter().writeLine(id + "");
+    authorPrinter.print(authorService.getByName(name));
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    Author author = authorDao.getById(id);
+    Author author = authorService.getById(id);
     getLineWriter().writeLine("Result:");
     authorPrinter.print(author);
   }
@@ -121,7 +119,7 @@ public class AuthorUserApi extends BaseUserApi {
   private void deleteById() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    authorDao.deleteById(id);
+    authorService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }
 

@@ -1,81 +1,103 @@
 package com.study.spring.library.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-@JdbcTest
-@Import(BookDaoImpl.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@DataJpaTest
+@Import({BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
 class BookDaoImplTest {
 
   @Autowired
-  private BookDaoImpl bookDao;
+  private BookDao bookDao;
+  @Autowired
+  private TestEntityManager em;
 
   @Test
   void getAll_success() {
     int expectedAuthorsAmount = 2;
-    int actualAuthorsAmount = bookDao.getAll().size();
+    int actualAuthorsAmount = bookDao.getAll()
+                                     .size();
     assertEquals(expectedAuthorsAmount, actualAuthorsAmount);
   }
 
   @Test
   void create_success() {
-    Book book = getFirstBook();
-    long bookId = bookDao.create(book, 4L, 2L);
-    Book bookById = bookDao.getById(bookId);
-    assertEquals(book.getTitle(), bookById.getTitle());
-    assertEquals(book.getDescription(), bookById.getDescription());
-    assertEquals("Ваня", bookById.getAuthor());
-    assertEquals("воздух", bookById.getGenre());
+    Book book = DaoTestUtils.createBook(em, "Test title", "Some description");
+    Long bookId = book.getId();
+
+    Book actualBook = em.find(Book.class, bookId);
+
+    assertEquals(book, actualBook);
   }
 
   @Test
   void getById_success() {
-    Book book = bookDao.getById(1L);
+    Book book = createBookWithDefaults();
+    em.detach(book);
+    Long bookId = book.getId();
 
-    assertEquals("Как понять слона", book.getTitle());
-    assertEquals("Слоны для чайников", book.getDescription());
-    assertEquals("Ваня", book.getAuthor());
-    assertEquals("воздух", book.getGenre());
+    Book bookById = bookDao.getById(bookId);
+
+    assertEquals(book, bookById);
+  }
+
+  @Test
+  void getById_notExistingBook_success() {
+    assertThrows(EntityNotFoundException.class, () -> bookDao.getById(Long.MAX_VALUE));
   }
 
   @Test
   void update_success() {
-    Book newBookData = Book.builder()
-                           .id(1L)
-                           .title("title_upd")
-                           .description("decsr_upd")
-                           .author("Маня")
-                           .genre("конь")
-                           .build();
+    String newTitle = "updated title";
+    String newDescription = "updated description";
+    Book newBookData = createBookWithDefaults();
+    em.detach(newBookData);
 
-    bookDao.update(newBookData, 1L, 3L);
-    Book bookFromDb = bookDao.getById(1L);
+    newBookData.setTitle(newTitle);
+    newBookData.setDescription(newDescription);
 
-    assertEquals(newBookData, bookFromDb);
+    bookDao.save(newBookData);
+
+    Book bookFromDb = em.find(Book.class, newBookData.getId());
+
+    assertEquals(newTitle, bookFromDb.getTitle());
+    assertEquals(newDescription, bookFromDb.getDescription());
+  }
+
+  @Test
+  void update_notExistingBook_success() {
+    Book newBookData = createBookWithDefaults();
+    em.detach(newBookData);
+
+    newBookData.setId(Long.MAX_VALUE);
+
+    assertThrows(EntityNotFoundException.class, () -> bookDao.save(newBookData));
   }
 
   @Test
   void deleteById_success() {
-    bookDao.deleteById(1L);
-    assertThrows(EntityNotFoundException.class, () -> bookDao.getById(1L));
+    Book newBookData = createBookWithDefaults();
+    Long id = newBookData.getId();
+    em.detach(newBookData);
+
+    bookDao.deleteById(id);
+
+    assertNull(em.find(Book.class, id));
   }
 
-  private static Book getFirstBook() {
-    return Book.builder()
-               .id(1L)
-               .title("title")
-               .description("decsr")
-               .author("Ваня")
-               .genre("воздух")
-               .build();
+  private Book createBookWithDefaults() {
+    String expectedTitle = "title_exp";
+    String expectedDescription = "title_descr";
+    return DaoTestUtils.createBook(em, expectedTitle, expectedDescription);
   }
+
 }

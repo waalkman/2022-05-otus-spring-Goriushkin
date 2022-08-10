@@ -1,24 +1,26 @@
 package com.study.spring.library.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.study.spring.library.domain.Author;
-import com.study.spring.library.exceptions.DataQueryException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
+import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-@JdbcTest
+@DataJpaTest
 @Import(AuthorDaoImpl.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class AuthorDaoImplTest {
 
   @Autowired
   private AuthorDao authorDao;
+  @Autowired
+  private TestEntityManager em;
 
   @Test
   void getAll() {
@@ -31,22 +33,22 @@ class AuthorDaoImplTest {
   void create_success() {
     String name = "some name";
     Author author = Author.builder().name(name).build();
-    long id = authorDao.create(author);
-    Author createdAuthor = authorDao.getById(id);
-    assertEquals(author.getName(), createdAuthor.getName());
+    long id = authorDao.save(author);
+    Author createdAuthor = em.find(Author.class, id);
+    assertEquals(author, createdAuthor);
   }
 
   @Test
   void create_tooLongName_success() {
     String name = "some name that is veeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong";
     Author author = Author.builder().name(name).build();
-    assertThrows(DataQueryException.class, () -> authorDao.create(author));
+    assertThrows(PersistenceException.class, () -> authorDao.save(author));
   }
 
   @Test
   void getById_success() {
-    Author expectedAuthor = Author.builder().id(4L).name("Таня").build();
-    Author actualAuthor = authorDao.getById(4L);
+    Author expectedAuthor = DaoTestUtils.createAuthor(em);
+    Author actualAuthor = authorDao.getById(expectedAuthor.getId());
     assertEquals(expectedAuthor, actualAuthor);
   }
 
@@ -57,28 +59,45 @@ class AuthorDaoImplTest {
 
   @Test
   void getIdByName_success() {
-    long expectedId = 4L;
-    long actualId = authorDao.getIdByName("Таня");
-    assertEquals(expectedId, actualId);
+    Author expectedAuthor = DaoTestUtils.createAuthor(em);
+    String authorName = expectedAuthor.getName();
+    Author author = authorDao.getByName(authorName);
+    assertEquals(expectedAuthor, author);
   }
 
   @Test
   void update_success() {
-    Author newNameAuthor = Author.builder().id(4L).name("Кирилл").build();
-    authorDao.update(newNameAuthor);
-    Author updatedAuthor = authorDao.getById(4L);
-    assertEquals(newNameAuthor, updatedAuthor);
+    String updatedName = "Updated name";
+    Author expectedAuthor = DaoTestUtils.createAuthor(em);
+    em.detach(expectedAuthor);
+    expectedAuthor.setName(updatedName);
+
+    authorDao.save(expectedAuthor);
+
+    Author actualAuthor = em.find(Author.class, expectedAuthor.getId());
+
+    assertEquals(expectedAuthor, actualAuthor);
+  }
+
+  @Test
+  void update_notExistingAuthor_success() {
+    Author author = DaoTestUtils.createAuthor(em);
+    em.detach(author);
+
+    author.setId(Long.MAX_VALUE);
+
+    assertThrows(EntityNotFoundException.class, () -> authorDao.save(author));
   }
 
   @Test
   void deleteById_success() {
-    String name = "some name";
-    Author newNameAuthor = Author.builder().name(name).build();
-    authorDao.create(newNameAuthor);
-    Long id = authorDao.getIdByName(name);
-    Author createdAuthor = authorDao.getById(id);
-    assertEquals(newNameAuthor.getName(), createdAuthor.getName());
+    Author createdAuthor = DaoTestUtils.createAuthor(em);
+    Long id = createdAuthor.getId();
+    em.detach(createdAuthor);
+
     authorDao.deleteById(id);
-    assertThrows(EntityNotFoundException.class, () -> authorDao.getById(id));
+
+    assertNull(em.find(Author.class, id));
   }
+
 }
