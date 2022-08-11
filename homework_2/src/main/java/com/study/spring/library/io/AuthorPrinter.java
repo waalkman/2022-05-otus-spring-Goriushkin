@@ -23,8 +23,4 @@ public class AuthorPrinter extends Printer<Author> {
     lineWriter.writeLine(String.format(PATTERN, author.getId(), author.getName()));
   }
 
-  @Override
-  protected void printEntityNotFound() {
-    lineWriter.writeLine("Author(s) not found");
-  }
 }

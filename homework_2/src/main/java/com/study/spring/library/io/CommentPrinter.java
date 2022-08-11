@@ -30,8 +30,4 @@ public class CommentPrinter extends Printer<Comment> {
     lineWriter.writeLine(HEADER);
   }
 
-  @Override
-  protected void printEntityNotFound() {
-    lineWriter.writeLine("Comment(s) not found");
-  }
 }

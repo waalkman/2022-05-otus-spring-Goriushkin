@@ -32,8 +32,4 @@ public class BookPrinter extends Printer<Book> {
     lineWriter.writeLine(HEADER);
   }
 
-  @Override
-  protected void printEntityNotFound() {
-    lineWriter.writeLine("Book(s) not found");
-  }
 }

@@ -1,33 +1,39 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.AuthorDao;
+import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Author;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.util.Optional;
-import org.springframework.dao.DataAccessException;
+import com.study.spring.library.service.AuthorService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = {"create", "deleteById", "getAll", "getById", "getByName", "update"};
+  private static final String[] OPTIONS = {
+      Options.CREATE,
+      Options.DELETE_BY_ID,
+      Options.GET_ALL,
+      Options.GET_BY_ID,
+      Options.GET_BY_NAME,
+      Options.UPDATE
+  };
 
-  private final AuthorDao authorDao;
+  private final AuthorService authorService;
   private final Printer<Author> authorPrinter;
 
   public AuthorUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
-      AuthorDao authorDao,
+      AuthorService authorService,
       Printer<Author> authorPrinter) {
 
     super(userInputReader, lineWriter);
-    this.authorDao = authorDao;
+    this.authorService = authorService;
     this.authorPrinter = authorPrinter;
   }
 
@@ -42,7 +48,7 @@ public class AuthorUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
-    } catch (DataAccessException e) {
+    } catch (RuntimeException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
@@ -51,12 +57,12 @@ public class AuthorUserApi extends BaseUserApi {
   @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "create" -> create();
-      case "deleteById" -> deleteById();
-      case "getAll" -> getAll();
-      case "getById" -> getByid();
-      case "getByName" -> getIdByName();
-      case "update" -> update();
+      case Options.CREATE -> create();
+      case Options.DELETE_BY_ID -> deleteById();
+      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_ID -> getByid();
+      case Options.GET_BY_NAME -> findByName();
+      case Options.UPDATE -> update();
       default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
@@ -66,40 +72,40 @@ public class AuthorUserApi extends BaseUserApi {
     long id = getUserInputReader().readLongFromLine();
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorDao.save(new Author(id, name));
+    authorService.update(new Author(id, name));
     getLineWriter().writeLine("Author updated");
   }
 
   private void create() {
     getLineWriter().writeLine("Enter new author name:");
     String name = getUserInputReader().readLine();
-    authorDao.save(Author.builder().name(name).build());
+    authorService.create(Author.builder().name(name).build());
     getLineWriter().writeLine("Author created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All authors:");
-    authorPrinter.print(authorDao.findAll());
+    authorPrinter.print(authorService.getAll());
   }
 
-  private void getIdByName() {
+  private void findByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorPrinter.print(authorDao.findByName(name));
+    Author author = authorService.findByName(name);
+    authorPrinter.print(author);
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    Optional<Author> author = authorDao.findById(id);
-    getLineWriter().writeLine("Result:");
+    Author author = authorService.findById(id);
     authorPrinter.print(author);
   }
 
   private void deleteById() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    authorDao.deleteById(id);
+    authorService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }
 

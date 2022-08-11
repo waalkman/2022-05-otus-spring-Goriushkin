@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BookDao extends JpaRepository<Book, Long> {
 
+  @EntityGraph(attributePaths = {"genre", "author"})
   Optional<Book> findByTitle(String title);
 
   @Override

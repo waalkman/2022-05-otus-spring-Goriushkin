@@ -8,20 +8,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Genre;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.util.Optional;
+import com.study.spring.library.service.GenreService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class GenreUserApiTest {
@@ -31,7 +29,7 @@ class GenreUserApiTest {
   @Spy
   private LineWriter lineWriter;
   @Spy
-  private GenreDao genreDao;
+  private GenreService genreService;
   @Mock
   private Printer<Genre> genrePrinter;
   @InjectMocks
@@ -43,7 +41,7 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(genreDao).save(any());
+    verify(genreService).create(any());
   }
 
   @Test
@@ -52,7 +50,7 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(genreDao).deleteById(any());
+    verify(genreService).deleteById(any());
   }
 
   @Test
@@ -61,20 +59,20 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(genreDao).findAll();
+    verify(genreService).getAll();
     verify(genrePrinter).print(anyList());
   }
 
   @Test
   void selectAndPerformOperation_getByIdOption_success() {
     String name = "testName";
-    Optional<Genre> testGenre = Optional.of(Genre.builder().name(name).build());
+    Genre testGenre = Genre.builder().name(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(genreDao.findById(any())).thenReturn(testGenre);
+    when(genreService.findById(any())).thenReturn(testGenre);
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(9)).writeLine(any());
-    verify(genreDao).findById(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(genreService).findById(any());
     verify(genrePrinter).print(testGenre);
   }
 
@@ -84,7 +82,7 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(genreDao).findByName(any());
+    verify(genreService).findByName(any());
   }
 
   @Test
@@ -93,7 +91,7 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(genreDao).save(any());
+    verify(genreService).update(any());
   }
 
   @Test
@@ -102,27 +100,27 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verifyNoInteractions(genreDao);
+    verifyNoInteractions(genreService);
   }
 
   @Test
   void selectAndPerformOperation_authorNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(EntityNotFoundException.class).when(genreDao).save(any());
+    doThrow(EntityNotFoundException.class).when(genreService).update(any());
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(genreDao).save(any());
+    verify(genreService).update(any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(DataIntegrityViolationException.class).when(genreDao).save(any());
+    doThrow(RuntimeException.class).when(genreService).update(any());
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(genreDao).save(any());
+    verify(genreService).update(any());
   }
-      
+
 }

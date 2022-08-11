@@ -8,24 +8,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.AuthorDao;
-import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
-import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.Genre;
+import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.util.Optional;
+import com.study.spring.library.service.BookService;
+import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class BookUserApiTest {
@@ -35,11 +31,7 @@ class BookUserApiTest {
   @Spy
   private LineWriter lineWriter;
   @Spy
-  private BookDao bookDao;
-  @Spy
-  private GenreDao genreDao;
-  @Spy
-  private AuthorDao authorDao;
+  private BookService bookService;
   @Mock
   private Printer<Book> bookPrinter;
   @InjectMocks
@@ -48,12 +40,10 @@ class BookUserApiTest {
   @Test
   void selectAndPerformOperation_createOption_success() {
     when(userInputReader.readIntFromLine()).thenReturn(1);
-    when(genreDao.findByName(any())).thenReturn(Optional.of(Genre.builder().name("testName").build()));
-    when(authorDao.findByName(any())).thenReturn(Optional.of(Author.builder().name("testName").build()));
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(12)).writeLine(any());
-    verify(bookDao).save(any());
+    verify(bookService).create(any(), any(), any());
   }
 
   @Test
@@ -62,7 +52,7 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(bookDao).deleteById(any());
+    verify(bookService).deleteById(any());
   }
 
   @Test
@@ -71,31 +61,29 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(bookDao).findAll();
+    verify(bookService).getAll();
     verify(bookPrinter).print(anyList());
   }
 
   @Test
   void selectAndPerformOperation_getByIdOption_success() {
     String name = "testName";
-    Optional<Book> testBook = Optional.of(Book.builder().title(name).build());
+    Book testBook = Book.builder().title(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(bookDao.findById(any())).thenReturn(testBook);
+    when(bookService.findById(any())).thenReturn(new CommentedBook(testBook));
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(8)).writeLine(any());
-    verify(bookDao).findById(any());
+    verify(lineWriter, times(9)).writeLine(any());
+    verify(bookService).findById(any());
   }
 
   @Test
   void selectAndPerformOperation_updateOption_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    when(genreDao.findByName(any())).thenReturn(Optional.of(Genre.builder().name("testName").build()));
-    when(authorDao.findByName(any())).thenReturn(Optional.of(Author.builder().name("testName").build()));
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).save(any());
+    verify(bookService).update(any(), any(), any());
   }
 
   @Test
@@ -104,30 +92,26 @@ class BookUserApiTest {
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verifyNoInteractions(bookDao);
+    verifyNoInteractions(bookService);
   }
 
   @Test
   void selectAndPerformOperation_bookNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    when(genreDao.findByName(any())).thenReturn(Optional.of(Genre.builder().name("testName").build()));
-    when(authorDao.findByName(any())).thenReturn(Optional.of(Author.builder().name("testName").build()));
-    doThrow(EntityNotFoundException.class).when(bookDao).save(any());
+    doThrow(EntityNotFoundException.class).when(bookService).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).save(any());
+    verify(bookService).update(any(), any(), any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    when(genreDao.findByName(any())).thenReturn(Optional.of(Genre.builder().name("testName").build()));
-    when(authorDao.findByName(any())).thenReturn(Optional.of(Author.builder().name("testName").build()));
-    doThrow(DataIntegrityViolationException.class).when(bookDao).save(any());
+    doThrow(PersistenceException.class).when(bookService).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());
-    verify(bookDao).save(any());
+    verify(bookService).update(any(), any(), any());
   }
 }

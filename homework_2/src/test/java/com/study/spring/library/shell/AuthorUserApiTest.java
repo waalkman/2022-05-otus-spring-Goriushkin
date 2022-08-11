@@ -8,20 +8,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.domain.Author;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.util.Optional;
+import com.study.spring.library.service.AuthorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorUserApiTest {
@@ -31,7 +29,7 @@ class AuthorUserApiTest {
   @Spy
   private LineWriter lineWriter;
   @Spy
-  private AuthorDao authorDao;
+  private AuthorService authorService;
   @Mock
   private Printer<Author> authorPrinter;
   @InjectMocks
@@ -43,7 +41,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(authorDao).save(any());
+    verify(authorService).create(any());
   }
 
   @Test
@@ -52,7 +50,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(9)).writeLine(any());
-    verify(authorDao).deleteById(any());
+    verify(authorService).deleteById(any());
   }
 
   @Test
@@ -61,20 +59,20 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(authorDao).findAll();
+    verify(authorService).getAll();
     verify(authorPrinter).print(anyList());
   }
 
   @Test
   void selectAndPerformOperation_getByIdOption_success() {
     String name = "testName";
-    Optional<Author> testAuthor = Optional.of(Author.builder().name(name).build());
+    Author testAuthor = Author.builder().name(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(authorDao.findById(any())).thenReturn(testAuthor);
+    when(authorService.findById(any())).thenReturn(testAuthor);
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(9)).writeLine(any());
-    verify(authorDao).findById(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(authorService).findById(any());
     verify(authorPrinter).print(testAuthor);
   }
 
@@ -84,7 +82,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(authorDao).findByName(any());
+    verify(authorService).findByName(any());
   }
 
   @Test
@@ -93,7 +91,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).save(any());
+    verify(authorService).update(any());
   }
 
   @Test
@@ -102,26 +100,26 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verifyNoInteractions(authorDao);
+    verifyNoInteractions(authorService);
   }
 
   @Test
   void selectAndPerformOperation_authorNotFound_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(EntityNotFoundException.class).when(authorDao).save(any());
+    doThrow(EntityNotFoundException.class).when(authorService).update(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).save(any());
+    verify(authorService).update(any());
   }
 
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(DataIntegrityViolationException.class).when(authorDao).save(any());
+    doThrow(new RuntimeException()).when(authorService).update(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
-    verify(authorDao).save(any());
+    verify(authorService).update(any());
   }
 }

@@ -1,15 +1,14 @@
 package com.study.spring.library.shell;
 
-import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.CommentDao;
-import com.study.spring.library.domain.Book;
+import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
-import java.util.Optional;
+import com.study.spring.library.service.CommentService;
+import liquibase.repackaged.org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,22 +16,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class CommentUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = {"create", "deleteById", "getAll", "getById", "update"};
+  private static final String[] OPTIONS = {
+      Options.CREATE,
+      Options.DELETE_BY_ID,
+      Options.GET_ALL,
+      Options.GET_BY_ID,
+      Options.UPDATE
+  };
 
-  private final CommentDao commentDao;
-  private final BookDao bookDao;
+  private final CommentService commentService;
   private final Printer<Comment> printer;
 
   public CommentUserApi(
       UserInputReader userInputReader,
       LineWriter lineWriter,
-      CommentDao commentDao,
-      BookDao bookDao,
+      CommentService commentService,
       Printer<Comment> printer) {
 
     super(userInputReader, lineWriter);
-    this.commentDao = commentDao;
-    this.bookDao = bookDao;
+    this.commentService = commentService;
     this.printer = printer;
   }
 
@@ -49,6 +51,7 @@ public class CommentUserApi extends BaseUserApi {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
     } catch (DataAccessException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
+      ExceptionUtils.printRootCauseStackTrace(e);
     }
   }
 
@@ -56,11 +59,11 @@ public class CommentUserApi extends BaseUserApi {
   @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "create" -> create();
-      case "deleteById" -> deleteById();
-      case "getAll" -> getAll();
-      case "getById" -> getByid();
-      case "update" -> update();
+      case Options.CREATE -> create();
+      case Options.DELETE_BY_ID -> deleteById();
+      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_ID -> getByid();
+      case Options.UPDATE -> update();
       default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
@@ -68,44 +71,39 @@ public class CommentUserApi extends BaseUserApi {
   private void update() {
     getLineWriter().writeLine("Enter comment id");
     long id = getUserInputReader().readLongFromLine();
-    commentDao.getById(id);
     Comment comment = gatherCommentData(id);
-    commentDao.save(comment);
+    String book = requestBook();
+    commentService.update(comment, book);
     getLineWriter().writeLine("Comment updated");
   }
 
   private void create() {
     Comment comment = gatherCommentData(null);
-    commentDao.save(comment);
+    String book = requestBook();
+    commentService.create(comment, book);
     getLineWriter().writeLine("Comment created");
   }
 
   private void getAll() {
     getLineWriter().writeLine("All comments:");
-    printer.print(commentDao.findAll());
+    printer.print(commentService.getAll());
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    Optional<Comment> comment = commentDao.findById(id);
-    getLineWriter().writeLine("Result:");
+    Comment comment = commentService.findById(id);
     printer.print(comment);
   }
 
   private void deleteById() {
     getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    commentDao.deleteById(id);
+    commentService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }
 
   private Comment gatherCommentData(Long id) {
-    getLineWriter().writeLine("Enter book title:");
-    String title = getUserInputReader().readLine();
-    Book book = bookDao.findByTitle(title)
-                       .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
-
     getLineWriter().writeLine("Enter your comment:");
     String comment = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter your username:");
@@ -113,10 +111,14 @@ public class CommentUserApi extends BaseUserApi {
 
     return Comment.builder()
                   .id(id)
-                  .book(book)
                   .userName(username)
                   .text(comment)
                   .build();
+  }
+
+  private String requestBook() {
+    getLineWriter().writeLine("Enter book title:");
+    return getUserInputReader().readLine();
   }
 
 }
