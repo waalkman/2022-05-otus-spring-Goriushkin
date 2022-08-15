@@ -14,7 +14,6 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.AuthorService;
-import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,11 +68,11 @@ class AuthorUserApiTest {
     String name = "testName";
     Author testAuthor = Author.builder().name(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(authorService.getById(any())).thenReturn(testAuthor);
+    when(authorService.findById(any())).thenReturn(testAuthor);
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(9)).writeLine(any());
-    verify(authorService).getById(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(authorService).findById(any());
     verify(authorPrinter).print(testAuthor);
   }
 
@@ -83,7 +82,7 @@ class AuthorUserApiTest {
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(authorService).getByName(any());
+    verify(authorService).findByName(any());
   }
 
   @Test
@@ -117,7 +116,7 @@ class AuthorUserApiTest {
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(authorService).update(any());
+    doThrow(new RuntimeException()).when(authorService).update(any());
     authorUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());

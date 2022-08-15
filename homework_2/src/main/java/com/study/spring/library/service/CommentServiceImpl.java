@@ -4,6 +4,7 @@ import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,19 +19,20 @@ public class CommentServiceImpl implements CommentService {
 
   @Override
   public Collection<Comment> getAll() {
-    return commentDao.getAll();
+    return commentDao.findAll();
   }
 
   @Override
   @Transactional
-  public long create(Comment comment, String bookTitle) {
+  public Comment create(Comment comment, String bookTitle) {
     requestAndSetBook(comment, bookTitle);
     return commentDao.save(comment);
   }
 
   @Override
-  public Comment getById(Long id) {
-    return commentDao.getById(id);
+  public Comment findById(Long id) {
+    return commentDao.findById(id)
+                     .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
   }
 
   @Override
@@ -47,7 +49,8 @@ public class CommentServiceImpl implements CommentService {
   }
 
   private void requestAndSetBook(Comment comment, String bookTitle) {
-    Book book = bookDao.getByTitle(bookTitle);
+    Book book = bookDao.findByTitle(bookTitle)
+                       .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
     comment.setBook(book);
   }
 }

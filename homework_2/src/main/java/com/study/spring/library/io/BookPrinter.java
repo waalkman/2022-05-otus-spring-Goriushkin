@@ -31,4 +31,5 @@ public class BookPrinter extends Printer<Book> {
   protected void printHeader() {
     lineWriter.writeLine(HEADER);
   }
+
 }

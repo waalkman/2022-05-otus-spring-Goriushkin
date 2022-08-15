@@ -29,4 +29,5 @@ public class CommentPrinter extends Printer<Comment> {
   protected void printHeader() {
     lineWriter.writeLine(HEADER);
   }
+
 }

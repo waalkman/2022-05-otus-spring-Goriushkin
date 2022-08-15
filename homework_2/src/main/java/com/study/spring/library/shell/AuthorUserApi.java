@@ -1,5 +1,6 @@
 package com.study.spring.library.shell;
 
+import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Author;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
@@ -7,23 +8,20 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.AuthorService;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AuthorUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[AuthorService.class.getDeclaredMethods().length];
-  static {
-    Arrays.stream(AuthorService.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {
+      Options.CREATE,
+      Options.DELETE_BY_ID,
+      Options.GET_ALL,
+      Options.GET_BY_ID,
+      Options.GET_BY_NAME,
+      Options.UPDATE
+  };
 
   private final AuthorService authorService;
   private final Printer<Author> authorPrinter;
@@ -50,34 +48,22 @@ public class AuthorUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine("Author(s) not found");
-    } catch (PersistenceException e) {
+    } catch (RuntimeException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "getByName":
-        getIdByName();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case Options.CREATE -> create();
+      case Options.DELETE_BY_ID -> deleteById();
+      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_ID -> getByid();
+      case Options.GET_BY_NAME -> findByName();
+      case Options.UPDATE -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -102,17 +88,17 @@ public class AuthorUserApi extends BaseUserApi {
     authorPrinter.print(authorService.getAll());
   }
 
-  private void getIdByName() {
+  private void findByName() {
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
-    authorPrinter.print(authorService.getByName(name));
+    Author author = authorService.findByName(name);
+    authorPrinter.print(author);
   }
 
   private void getByid() {
     getLineWriter().writeLine("Enter author id:");
     long id = getUserInputReader().readLongFromLine();
-    Author author = authorService.getById(id);
-    getLineWriter().writeLine("Result:");
+    Author author = authorService.findById(id);
     authorPrinter.print(author);
   }
 

@@ -1,14 +1,11 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Author;
-import java.util.Collection;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AuthorDao {
+public interface AuthorDao extends JpaRepository<Author, Long> {
 
-  Collection<Author> getAll();
-  Author getById(Long id);
-  Author getByName(String name);
-  void deleteById(Long id);
-  long save(Author author);
+  Optional<Author> findByName(String name);
 
 }

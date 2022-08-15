@@ -1,5 +1,6 @@
 package com.study.spring.library.shell;
 
+import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.dto.CommentedBook;
@@ -9,23 +10,19 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.BookService;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import javax.persistence.PersistenceException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BookUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[BookService.class.getDeclaredMethods().length];
-  static {
-    Arrays.stream(BookService.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {
+      Options.CREATE,
+      Options.DELETE_BY_ID,
+      Options.GET_ALL,
+      Options.GET_BY_ID,
+      Options.GET_BY_TITLE,
+      Options.UPDATE
+  };
 
   private final BookService bookService;
   private final Printer<Book> bookPrinter;
@@ -55,34 +52,21 @@ public class BookUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
-    } catch (PersistenceException e) {
-      getLineWriter().writeLine(String.format("Error executing operation: %s", e.getMessage()));
+    } catch (RuntimeException e) {
+      getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
     }
   }
 
   @Override
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "getByTitle":
-        getByTitle();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case Options.CREATE -> create();
+      case Options.DELETE_BY_ID -> deleteById();
+      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_ID -> getByid();
+      case Options.GET_BY_TITLE -> getByTitle();
+      case Options.UPDATE -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -109,6 +93,7 @@ public class BookUserApi extends BaseUserApi {
     String title = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter book description:");
     String description = getUserInputReader().readLine();
+
     return Book.builder()
                .id(id)
                .title(title)
@@ -134,7 +119,7 @@ public class BookUserApi extends BaseUserApi {
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
     long id = getUserInputReader().readLongFromLine();
-    CommentedBook book = bookService.getById(id);
+    CommentedBook book = bookService.findById(id);
     bookPrinter.print(book.getBook());
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());
@@ -143,7 +128,7 @@ public class BookUserApi extends BaseUserApi {
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    CommentedBook book = bookService.getByTitle(title);
+    CommentedBook book = bookService.findByTitle(title);
     bookPrinter.print(book.getBook());
     getLineWriter().writeLine("Book comments:");
     commentPrinter.print(book.getComments());

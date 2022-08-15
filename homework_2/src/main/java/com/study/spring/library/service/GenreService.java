@@ -6,9 +6,9 @@ import java.util.Collection;
 public interface GenreService {
 
   Collection<Genre> getAll();
-  long create(Genre genre);
-  Genre getById(Long id);
-  Genre getByName(String name);
+  Genre create(Genre genre);
+  Genre findById(Long id);
+  Genre findByName(String name);
   void update(Genre genre);
   void deleteById(Long id);
 

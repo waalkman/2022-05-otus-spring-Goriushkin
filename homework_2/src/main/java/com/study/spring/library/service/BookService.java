@@ -7,9 +7,9 @@ import java.util.Collection;
 public interface BookService {
 
   Collection<Book> getAll();
-  long create(Book book, String genre, String author);
-  CommentedBook getById(Long id);
-  CommentedBook getByTitle(String title);
+  Book create(Book book, String genre, String author);
+  CommentedBook findById(Long id);
+  CommentedBook findByTitle(String title);
   void update(Book book, String genre, String author);
   void deleteById(Long id);
 

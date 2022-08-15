@@ -2,6 +2,7 @@ package com.study.spring.library.service;
 
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Genre;
+import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,23 +16,25 @@ public class GenreServiceImpl implements GenreService {
 
   @Override
   public Collection<Genre> getAll() {
-    return genreDao.getAll();
+    return genreDao.findAll();
   }
 
   @Override
   @Transactional
-  public long create(Genre genre) {
+  public Genre create(Genre genre) {
     return genreDao.save(genre);
   }
 
   @Override
-  public Genre getById(Long id) {
-    return genreDao.getById(id);
+  public Genre findById(Long id) {
+    return genreDao.findById(id)
+                   .orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre"));
   }
 
   @Override
-  public Genre getByName(String name) {
-    return genreDao.getByName(name);
+  public Genre findByName(String name) {
+    return genreDao.findByName(name)
+                   .orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre"));
   }
 
   @Override

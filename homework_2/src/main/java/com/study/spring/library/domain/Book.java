@@ -7,8 +7,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -24,12 +22,6 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@NamedEntityGraph(
-    name = "book-entity-graph",
-    attributeNodes = {
-        @NamedAttributeNode("genre"),
-        @NamedAttributeNode("author")
-    })
 public class Book {
 
   @Id

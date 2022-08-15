@@ -1,14 +1,14 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Comment;
-import java.util.Collection;
+import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CommentDao {
+public interface CommentDao extends JpaRepository<Comment, Long> {
 
-  Collection<Comment> getAll();
-  Collection<Comment> getByBookId(Long bookId);
-  long save(Comment comment);
-  Comment getById(Long id);
-  void deleteById(Long id);
+  @Override
+  @EntityGraph(attributePaths = {"book"})
+  List<Comment> findAll();
 
 }

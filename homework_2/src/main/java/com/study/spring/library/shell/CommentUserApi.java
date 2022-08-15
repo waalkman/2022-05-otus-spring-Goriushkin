@@ -1,5 +1,6 @@
 package com.study.spring.library.shell;
 
+import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
@@ -7,25 +8,21 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.CommentService;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import javax.persistence.PersistenceException;
 import liquibase.repackaged.org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CommentUserApi extends BaseUserApi {
 
-  private static final String[] OPTIONS = new String[CommentService.class.getDeclaredMethods().length];
-
-  static {
-    Arrays.stream(CommentService.class.getDeclaredMethods())
-          .map(Method::getName)
-          .sorted()
-          .collect(Collectors.toList())
-          .toArray(OPTIONS);
-  }
+  private static final String[] OPTIONS = {
+      Options.CREATE,
+      Options.DELETE_BY_ID,
+      Options.GET_ALL,
+      Options.GET_BY_ID,
+      Options.UPDATE
+  };
 
   private final CommentService commentService;
   private final Printer<Comment> printer;
@@ -52,32 +49,22 @@ public class CommentUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
-    } catch (PersistenceException e) {
+    } catch (DataAccessException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
       ExceptionUtils.printRootCauseStackTrace(e);
     }
   }
 
   @Override
+  @Transactional
   protected void chooseOperation(String operation) {
     switch (operation) {
-      case "update":
-        update();
-        break;
-      case "create":
-        create();
-        break;
-      case "getAll":
-        getAll();
-        break;
-      case "getById":
-        getByid();
-        break;
-      case "deleteById":
-        deleteById();
-        break;
-      default:
-        throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
+      case Options.CREATE -> create();
+      case Options.DELETE_BY_ID -> deleteById();
+      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_ID -> getByid();
+      case Options.UPDATE -> update();
+      default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
     }
   }
 
@@ -105,8 +92,7 @@ public class CommentUserApi extends BaseUserApi {
   private void getByid() {
     getLineWriter().writeLine("Enter comment id:");
     long id = getUserInputReader().readLongFromLine();
-    Comment comment = commentService.getById(id);
-    getLineWriter().writeLine("Result:");
+    Comment comment = commentService.findById(id);
     printer.print(comment);
   }
 

@@ -22,4 +22,5 @@ public class GenrePrinter extends Printer<Genre> {
   protected void printHeader() {
     lineWriter.writeLine(HEADER);
   }
+
 }

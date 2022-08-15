@@ -6,8 +6,8 @@ import java.util.Collection;
 public interface CommentService {
 
   Collection<Comment> getAll();
-  long create(Comment comment, String bookTitle);
-  Comment getById(Long id);
+  Comment create(Comment comment, String bookTitle);
+  Comment findById(Long id);
   void update(Comment comment, String bookTitle);
   void deleteById(Long id);
 

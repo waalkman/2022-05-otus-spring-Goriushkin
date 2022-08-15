@@ -14,7 +14,6 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.GenreService;
-import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,11 +68,11 @@ class GenreUserApiTest {
     String name = "testName";
     Genre testGenre = Genre.builder().name(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(genreService.getById(any())).thenReturn(testGenre);
+    when(genreService.findById(any())).thenReturn(testGenre);
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(9)).writeLine(any());
-    verify(genreService).getById(any());
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(genreService).findById(any());
     verify(genrePrinter).print(testGenre);
   }
 
@@ -83,7 +82,7 @@ class GenreUserApiTest {
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(8)).writeLine(any());
-    verify(genreService).getByName(any());
+    verify(genreService).findByName(any());
   }
 
   @Test
@@ -117,7 +116,7 @@ class GenreUserApiTest {
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(genreService).update(any());
+    doThrow(RuntimeException.class).when(genreService).update(any());
     genreUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(10)).writeLine(any());
