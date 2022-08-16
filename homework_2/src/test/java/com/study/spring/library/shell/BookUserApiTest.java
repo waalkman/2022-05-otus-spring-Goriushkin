@@ -9,13 +9,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.BookService;
-import javax.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,11 +68,23 @@ class BookUserApiTest {
     String name = "testName";
     Book testBook = Book.builder().title(name).build();
     when(userInputReader.readIntFromLine()).thenReturn(4);
-    when(bookService.findById(any())).thenReturn(new CommentedBook(testBook));
+    when(bookService.findById(any())).thenReturn(testBook);
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
-    verify(lineWriter, times(9)).writeLine(any());
+    verify(lineWriter, times(8)).writeLine(any());
     verify(bookService).findById(any());
+  }
+
+  @Test
+  void selectAndPerformOperation_getByTitleOption_success() {
+    String name = "testName";
+    Book testBook = Book.builder().title(name).build();
+    when(userInputReader.readIntFromLine()).thenReturn(5);
+    when(bookService.findByTitle(any())).thenReturn(testBook);
+    bookUserApi.selectAndPerformOperation();
+    verify(userInputReader).readIntFromLine();
+    verify(lineWriter, times(8)).writeLine(any());
+    verify(bookService).findByTitle(any());
   }
 
   @Test
@@ -108,7 +118,7 @@ class BookUserApiTest {
   @Test
   void selectAndPerformOperation_sqlError_success() {
     when(userInputReader.readIntFromLine()).thenReturn(6);
-    doThrow(PersistenceException.class).when(bookService).update(any(), any(), any());
+    doThrow(new RuntimeException()).when(bookService).update(any(), any(), any());
     bookUserApi.selectAndPerformOperation();
     verify(userInputReader).readIntFromLine();
     verify(lineWriter, times(13)).writeLine(any());

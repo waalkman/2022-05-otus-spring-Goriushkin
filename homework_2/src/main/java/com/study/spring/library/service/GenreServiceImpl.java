@@ -6,7 +6,6 @@ import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +19,12 @@ public class GenreServiceImpl implements GenreService {
   }
 
   @Override
-  @Transactional
   public Genre create(Genre genre) {
     return genreDao.save(genre);
   }
 
   @Override
-  public Genre findById(Long id) {
+  public Genre findById(String id) {
     return genreDao.findById(id)
                    .orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre"));
   }
@@ -38,14 +36,12 @@ public class GenreServiceImpl implements GenreService {
   }
 
   @Override
-  @Transactional
   public void update(Genre genre) {
     genreDao.save(genre);
   }
 
   @Override
-  @Transactional
-  public void deleteById(Long id) {
+  public void deleteById(String id) {
     genreDao.deleteById(id);
   }
 }

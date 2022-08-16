@@ -1,56 +1,80 @@
 package com.study.spring.library.service;
 
 import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.CommentDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
-  private final CommentDao commentDao;
   private final BookDao bookDao;
 
   @Override
-  public Collection<Comment> getAll() {
-    return commentDao.findAll();
+  public void create(Comment comment, String bookTitle) {
+    Book book = getBook(bookTitle);
+    book.getComments().add(comment);
+    bookDao.save(book);
   }
 
   @Override
-  @Transactional
-  public Comment create(Comment comment, String bookTitle) {
-    requestAndSetBook(comment, bookTitle);
-    return commentDao.save(comment);
+  public Comment findById(String bookTitle, String id) {
+    return bookDao.findByTitle(bookTitle)
+                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
+                  .getComments()
+                  .stream()
+                  .filter(c -> c.getId().equals(id))
+                  .findAny()
+                  .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
   }
 
   @Override
-  public Comment findById(Long id) {
-    return commentDao.findById(id)
-                     .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
+  public Collection<Comment> findByBookTitle(String bookTitle) {
+    return bookDao.findByTitle(bookTitle)
+                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
+                  .getComments();
   }
 
   @Override
-  @Transactional
   public void update(Comment comment, String bookTitle) {
-    requestAndSetBook(comment, bookTitle);
-    commentDao.save(comment);
+    Book book = getBook(bookTitle);
+    book.setComments(
+        book.getComments()
+            .stream()
+            .map(Comment::copy)
+            .collect(Collectors.toList()));
+
+    Comment foundComment = book.getComments()
+                               .stream()
+                               .filter(c -> c.getId().equals(comment.getId()))
+                               .findAny()
+                               .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
+
+    foundComment.setUserName(comment.getUserName());
+    foundComment.setText(comment.getText());
+
+    bookDao.save(book);
   }
 
   @Override
-  @Transactional
-  public void deleteById(Long id) {
-    commentDao.deleteById(id);
+  public void deleteById(String bookTitle, String id) {
+    Book book = getBook(bookTitle);
+    book.setComments(
+        book.getComments()
+            .stream()
+            .filter(c -> !c.getId().equals(id))
+            .collect(Collectors.toList()));
+
+    bookDao.save(book);
   }
 
-  private void requestAndSetBook(Comment comment, String bookTitle) {
-    Book book = bookDao.findByTitle(bookTitle)
-                       .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
-    comment.setBook(book);
+  private Book getBook(String bookTitle) {
+    return bookDao.findByTitle(bookTitle)
+                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
   }
 }

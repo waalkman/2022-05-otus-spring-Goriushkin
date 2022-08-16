@@ -1,18 +1,14 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Book;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface BookDao extends JpaRepository<Book, Long> {
+public interface BookDao extends MongoRepository<Book, String> {
 
-  @EntityGraph(attributePaths = {"genre", "author"})
   Optional<Book> findByTitle(String title);
-
-  @Override
-  @EntityGraph(attributePaths = {"genre", "author"})
-  List<Book> findAll();
+  Collection<Book> findByAuthor(String author);
+  Collection<Book> findByGenre(String genre);
 
 }

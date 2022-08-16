@@ -3,6 +3,7 @@ package com.study.spring.library.io;
 import java.util.Collection;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 @RequiredArgsConstructor
 public abstract class Printer<T> {
@@ -14,8 +15,10 @@ public abstract class Printer<T> {
     printSingleEntity(entity);
   }
   public void print(Collection<@NotNull T> entities) {
-    printHeader();
-    entities.forEach(this::printSingleEntity);
+    if (!CollectionUtils.isEmpty(entities)) {
+      printHeader();
+      entities.forEach(this::printSingleEntity);
+    }
   }
   protected abstract void printSingleEntity(T entity);
   protected abstract void printHeader();

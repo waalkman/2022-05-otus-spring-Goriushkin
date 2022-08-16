@@ -14,5 +14,6 @@ public class Options {
   public static final String UPDATE = "update";
 
   public static final String GET_BY_TITLE = "getByTitle";
+  public static final String GET_BY_BOOK_TITLE = "findByBookTitle";
 
 }

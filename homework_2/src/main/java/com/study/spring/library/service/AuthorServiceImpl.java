@@ -24,7 +24,7 @@ public class AuthorServiceImpl implements AuthorService {
   }
 
   @Override
-  public Author findById(Long id) {
+  public Author findById(String id) {
     return authorDao.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Author not found", "Author"));
   }
@@ -41,7 +41,7 @@ public class AuthorServiceImpl implements AuthorService {
   }
 
   @Override
-  public void deleteById(Long id) {
+  public void deleteById(String id) {
     authorDao.deleteById(id);
   }
 }

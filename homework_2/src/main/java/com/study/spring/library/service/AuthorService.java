@@ -7,9 +7,9 @@ public interface AuthorService {
 
   Collection<Author> getAll();
   Author create(Author author);
-  Author findById(Long id);
+  Author findById(String id);
   Author findByName(String name);
   void update(Author author);
-  void deleteById(Long id);
+  void deleteById(String id);
 
 }
