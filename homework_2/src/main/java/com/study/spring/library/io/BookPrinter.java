@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 public class BookPrinter extends Printer<Book> {
 
   private static final String HEADER =
-      "ID  TITLE" + " ".repeat(45) + "DESCRIPTION" + " ".repeat(39) + "AUTHOR" + " ".repeat(27) + "GENRE";
+      "ID" + " ".repeat(28) + "TITLE" + " ".repeat(45) + "DESCRIPTION" + " ".repeat(39) + "AUTHOR" + " ".repeat(27) + "GENRE";
 
-  private static final String PATTERN = "%-4d%-50s%-50s%-33s%-4s";
+  private static final String PATTERN = "%-30s%-50s%-50s%-33s%-4s";
 
   public BookPrinter(LineWriter lineWriter) {
     super(lineWriter);

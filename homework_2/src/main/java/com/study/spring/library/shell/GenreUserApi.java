@@ -69,7 +69,7 @@ public class GenreUserApi extends BaseUserApi {
 
   private void update() {
     getLineWriter().writeLine("Enter genre id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter genre name:");
     String name = getUserInputReader().readLine();
     genreService.update(new Genre(id, name));
@@ -90,7 +90,7 @@ public class GenreUserApi extends BaseUserApi {
 
   private void getByid() {
     getLineWriter().writeLine("Enter genre id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     Genre genre = genreService.findById(id);
     printer.print(genre);
   }
@@ -104,7 +104,7 @@ public class GenreUserApi extends BaseUserApi {
 
   private void deleteById() {
     getLineWriter().writeLine("Enter genre id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     genreService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }

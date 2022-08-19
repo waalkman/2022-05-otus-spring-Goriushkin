@@ -69,7 +69,7 @@ public class AuthorUserApi extends BaseUserApi {
 
   private void update() {
     getLineWriter().writeLine("Enter author id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter author name:");
     String name = getUserInputReader().readLine();
     authorService.update(new Author(id, name));
@@ -97,14 +97,14 @@ public class AuthorUserApi extends BaseUserApi {
 
   private void getByid() {
     getLineWriter().writeLine("Enter author id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     Author author = authorService.findById(id);
     authorPrinter.print(author);
   }
 
   private void deleteById() {
     getLineWriter().writeLine("Enter author id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     authorService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }

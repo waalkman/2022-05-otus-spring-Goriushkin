@@ -1,17 +1,13 @@
 package com.study.spring.library.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "authors")
+@Document("authors")
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,8 +15,7 @@ import lombok.NoArgsConstructor;
 public class Author {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private String id;
   private String name;
 
 }

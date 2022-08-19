@@ -3,7 +3,6 @@ package com.study.spring.library.shell;
 import com.study.spring.library.constants.Options;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
-import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import com.study.spring.library.exceptions.UnsupportedValueException;
 import com.study.spring.library.io.LineWriter;
@@ -72,7 +71,7 @@ public class BookUserApi extends BaseUserApi {
 
   private void update() {
     getLineWriter().writeLine("Enter book id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     Book book = gatherBookData(id);
     String genre = requestGenre();
     String author = requestAuthor();
@@ -88,7 +87,7 @@ public class BookUserApi extends BaseUserApi {
     getLineWriter().writeLine("Book created");
   }
 
-  private Book gatherBookData(Long id) {
+  private Book gatherBookData(String id) {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter book description:");
@@ -118,25 +117,23 @@ public class BookUserApi extends BaseUserApi {
 
   private void getByid() {
     getLineWriter().writeLine("Enter book id:");
-    long id = getUserInputReader().readLongFromLine();
-    CommentedBook book = bookService.findById(id);
-    bookPrinter.print(book.getBook());
-    getLineWriter().writeLine("Book comments:");
+    String id = getUserInputReader().readLine();
+    Book book = bookService.findById(id);
+    bookPrinter.print(book);
     commentPrinter.print(book.getComments());
   }
 
   private void getByTitle() {
     getLineWriter().writeLine("Enter book title:");
     String title = getUserInputReader().readLine();
-    CommentedBook book = bookService.findByTitle(title);
-    bookPrinter.print(book.getBook());
-    getLineWriter().writeLine("Book comments:");
+    Book book = bookService.findByTitle(title);
+    bookPrinter.print(book);
     commentPrinter.print(book.getComments());
   }
 
   private void deleteById() {
     getLineWriter().writeLine("Enter book id:");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     bookService.deleteById(id);
     getLineWriter().writeLine("Deleted successfully");
   }

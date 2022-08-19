@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class GenrePrinter extends Printer<Genre> {
 
-  private static final String HEADER = "ID\tGENRE";
-  private static final String PATTERN = "%-4d%s";
+  private static final String HEADER = "ID" + " ".repeat(28) + "GENRE";
+  private static final String PATTERN = "%-30s%s";
 
   public GenrePrinter(LineWriter lineWriter) {
     super(lineWriter);

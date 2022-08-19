@@ -7,9 +7,9 @@ public interface GenreService {
 
   Collection<Genre> getAll();
   Genre create(Genre genre);
-  Genre findById(Long id);
+  Genre findById(String id);
   Genre findByName(String name);
   void update(Genre genre);
-  void deleteById(Long id);
+  void deleteById(String id);
 
 }

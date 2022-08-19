@@ -4,13 +4,11 @@ import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.dto.CommentedBook;
 import com.study.spring.library.exceptions.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,44 +24,43 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  @Transactional
   public Book create(Book book, String genre, String author) {
-    fillAuthorAndGenre(book, genre, author);
+    checkAuthorAndGenre(book, genre, author);
+    book.setComments(new ArrayList<>());
     return bookDao.save(book);
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public CommentedBook findById(Long id) {
-    Book book = bookDao.findById(id)
-                       .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));;
-    Hibernate.initialize(book.getComments());
-    return new CommentedBook(book);
+  public Book findById(String id) {
+    return bookDao.findById(id)
+                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public CommentedBook findByTitle(String title) {
-    Book book = bookDao.findByTitle(title)
-                                 .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
-    Hibernate.initialize(book.getComments());
-    return new CommentedBook(book);
+  public Book findByTitle(String title) {
+    return bookDao.findByTitle(title)
+                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
   }
 
   @Override
-  @Transactional
   public void update(Book book, String genre, String author) {
-    fillAuthorAndGenre(book, genre, author);
-    bookDao.save(book);
+    Book currentBook = bookDao.findById(book.getId())
+                              .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
+
+    currentBook.setTitle(book.getTitle());
+    currentBook.setDescription(book.getDescription());
+    currentBook.setAuthor(book.getAuthor());
+    currentBook.setGenre(book.getGenre());
+
+    bookDao.save(currentBook);
   }
 
   @Override
-  @Transactional
-  public void deleteById(Long id) {
+  public void deleteById(String id) {
     bookDao.deleteById(id);
   }
 
-  private void fillAuthorAndGenre(Book book, String genre, String author) {
+  private void checkAuthorAndGenre(Book book, String genre, String author) {
     book.setGenre(genreDao.findByName(genre).orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre")));
     book.setAuthor(authorDao.findByName(author).orElseThrow(() -> new EntityNotFoundException("Author not found", "Author")));
   }

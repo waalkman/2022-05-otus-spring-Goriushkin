@@ -5,10 +5,10 @@ import java.util.Collection;
 
 public interface CommentService {
 
-  Collection<Comment> getAll();
-  Comment create(Comment comment, String bookTitle);
-  Comment findById(Long id);
+  void create(Comment comment, String bookTitle);
+  Comment findById(String bookTitle, String id);
+  Collection<Comment> findByBookTitle(String bookTitle);
   void update(Comment comment, String bookTitle);
-  void deleteById(Long id);
+  void deleteById(String bookTitle, String id);
 
 }

@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommentPrinter extends Printer<Comment> {
 
-  private static final String HEADER = "ID  TEXT" + " ".repeat(45) + "USER_NAME" + " ".repeat(25) + "BOOK";
+  private static final String HEADER = "ID" + " ".repeat(28) + "TEXT" + " ".repeat(45) + "USER_NAME";
 
-  private static final String PATTERN = "%-4d%-49s%-34s%s";
+  private static final String PATTERN = "%-30s%-49s%s";
 
   public CommentPrinter(LineWriter lineWriter) {
     super(lineWriter);
@@ -21,8 +21,7 @@ public class CommentPrinter extends Printer<Comment> {
             PATTERN,
             comment.getId(),
             comment.getText(),
-            comment.getUserName(),
-            comment.getBook().getTitle()));
+            comment.getUserName()));
   }
 
   @Override

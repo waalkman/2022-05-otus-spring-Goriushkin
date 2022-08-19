@@ -8,8 +8,7 @@ import com.study.spring.library.io.LineWriter;
 import com.study.spring.library.io.Printer;
 import com.study.spring.library.io.UserInputReader;
 import com.study.spring.library.service.CommentService;
-import liquibase.repackaged.org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.dao.DataAccessException;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +18,7 @@ public class CommentUserApi extends BaseUserApi {
   private static final String[] OPTIONS = {
       Options.CREATE,
       Options.DELETE_BY_ID,
-      Options.GET_ALL,
+      Options.GET_BY_BOOK_TITLE,
       Options.GET_BY_ID,
       Options.UPDATE
   };
@@ -49,9 +48,8 @@ public class CommentUserApi extends BaseUserApi {
       chooseOperation(operation);
     } catch (EntityNotFoundException ex) {
       getLineWriter().writeLine(String.format("%s not found", ex.getEntity()));
-    } catch (DataAccessException e) {
+    } catch (RuntimeException e) {
       getLineWriter().writeLine(String.format("Error executing operation %s", e.getMessage()));
-      ExceptionUtils.printRootCauseStackTrace(e);
     }
   }
 
@@ -61,7 +59,7 @@ public class CommentUserApi extends BaseUserApi {
     switch (operation) {
       case Options.CREATE -> create();
       case Options.DELETE_BY_ID -> deleteById();
-      case Options.GET_ALL -> getAll();
+      case Options.GET_BY_BOOK_TITLE -> findByBookTitle();
       case Options.GET_BY_ID -> getByid();
       case Options.UPDATE -> update();
       default -> throw new UnsupportedValueException(String.format("Unsupported option requested: %s", operation));
@@ -70,7 +68,7 @@ public class CommentUserApi extends BaseUserApi {
 
   private void update() {
     getLineWriter().writeLine("Enter comment id");
-    long id = getUserInputReader().readLongFromLine();
+    String id = getUserInputReader().readLine();
     Comment comment = gatherCommentData(id);
     String book = requestBook();
     commentService.update(comment, book);
@@ -78,32 +76,34 @@ public class CommentUserApi extends BaseUserApi {
   }
 
   private void create() {
-    Comment comment = gatherCommentData(null);
+    Comment comment = gatherCommentData(new ObjectId().toString());
     String book = requestBook();
     commentService.create(comment, book);
     getLineWriter().writeLine("Comment created");
   }
 
-  private void getAll() {
-    getLineWriter().writeLine("All comments:");
-    printer.print(commentService.getAll());
+  private void findByBookTitle() {
+    String title = requestBook();
+    printer.print(commentService.findByBookTitle(title));
   }
 
   private void getByid() {
+    String title = requestBook();
     getLineWriter().writeLine("Enter comment id:");
-    long id = getUserInputReader().readLongFromLine();
-    Comment comment = commentService.findById(id);
+    String id = getUserInputReader().readLine();
+    Comment comment = commentService.findById(title, id);
     printer.print(comment);
   }
 
   private void deleteById() {
+    String title = requestBook();
     getLineWriter().writeLine("Enter comment id:");
-    long id = getUserInputReader().readLongFromLine();
-    commentService.deleteById(id);
+    String id = getUserInputReader().readLine();
+    commentService.deleteById(title, id);
     getLineWriter().writeLine("Deleted successfully");
   }
 
-  private Comment gatherCommentData(Long id) {
+  private Comment gatherCommentData(String id) {
     getLineWriter().writeLine("Enter your comment:");
     String comment = getUserInputReader().readLine();
     getLineWriter().writeLine("Enter your username:");
