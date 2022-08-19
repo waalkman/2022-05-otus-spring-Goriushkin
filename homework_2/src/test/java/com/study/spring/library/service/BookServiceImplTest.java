@@ -114,6 +114,8 @@ class BookServiceImplTest {
                     .build();
 
     when(bookDao.findById(bookId)).thenReturn(Optional.of(book));
+    when(authorDao.findByName(authorName)).thenReturn(Optional.of(author));
+    when(genreDao.findByName(genreName)).thenReturn(Optional.of(genre));
 
     bookService.update(book, genreName, authorName);
 

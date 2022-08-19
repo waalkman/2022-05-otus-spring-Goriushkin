@@ -4,10 +4,6 @@ spring:
       database: library
       host: localhost
       port: 27017
-  main:
-    allow-circular-references: true
-input:
-  retriesThreshold: 3
 logging:
   level:
     root: info

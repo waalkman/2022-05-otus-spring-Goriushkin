@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Library</title>
+</head>
+<body>
+<h3>Error page</h3>
+<div style="margin: 5px">
+  <div th:text="${message}">Error message</div>
+</div>
+<div style="margin-top: 20px">
+  <a th:href="@{/}" href="index.html">Go to root page</a>
+</div>
+</body>
+</html>

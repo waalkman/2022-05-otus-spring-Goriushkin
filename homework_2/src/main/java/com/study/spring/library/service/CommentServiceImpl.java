@@ -4,6 +4,7 @@ import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +17,18 @@ public class CommentServiceImpl implements CommentService {
   private final BookDao bookDao;
 
   @Override
-  public void create(Comment comment, String bookTitle) {
-    Book book = getBook(bookTitle);
+  public void create(Comment comment, String bookId) {
+    Book book = getBook(bookId);
+    if (book.getComments() == null) {
+      book.setComments(new ArrayList<>());
+    }
     book.getComments().add(comment);
     bookDao.save(book);
   }
 
   @Override
-  public Comment findById(String bookTitle, String id) {
-    return bookDao.findByTitle(bookTitle)
+  public Comment findById(String bookId, String id) {
+    return bookDao.findById(bookId)
                   .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
                   .getComments()
                   .stream()
@@ -34,15 +38,15 @@ public class CommentServiceImpl implements CommentService {
   }
 
   @Override
-  public Collection<Comment> findByBookTitle(String bookTitle) {
-    return bookDao.findByTitle(bookTitle)
+  public Collection<Comment> findByBook(String bookId) {
+    return bookDao.findById(bookId)
                   .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
                   .getComments();
   }
 
   @Override
-  public void update(Comment comment, String bookTitle) {
-    Book book = getBook(bookTitle);
+  public void update(Comment comment, String bookId) {
+    Book book = getBook(bookId);
     book.setComments(
         book.getComments()
             .stream()
@@ -62,8 +66,8 @@ public class CommentServiceImpl implements CommentService {
   }
 
   @Override
-  public void deleteById(String bookTitle, String id) {
-    Book book = getBook(bookTitle);
+  public void deleteById(String bookId, String id) {
+    Book book = getBook(bookId);
     book.setComments(
         book.getComments()
             .stream()
@@ -73,8 +77,8 @@ public class CommentServiceImpl implements CommentService {
     bookDao.save(book);
   }
 
-  private Book getBook(String bookTitle) {
-    return bookDao.findByTitle(bookTitle)
+  private Book getBook(String bookId) {
+    return bookDao.findById(bookId)
                   .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
   }
 }

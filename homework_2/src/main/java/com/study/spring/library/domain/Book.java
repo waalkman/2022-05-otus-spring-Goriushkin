@@ -1,5 +1,6 @@
 package com.study.spring.library.domain;
 
+import com.study.spring.library.dto.BookDto;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +26,15 @@ public class Book {
   @DBRef
   private Author author;
   private List<Comment> comments;
+
+  public BookDto toDto() {
+    return BookDto.builder()
+                  .id(this.id)
+                  .title(this.title)
+                  .description(this.description)
+                  .author(this.author.getName())
+                  .genre(this.genre.getName())
+                  .build();
+  }
 
 }
