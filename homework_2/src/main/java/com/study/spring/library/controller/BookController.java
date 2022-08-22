@@ -1,9 +1,14 @@
 package com.study.spring.library.controller;
 
+import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.domain.Genre;
 import com.study.spring.library.dto.BookDto;
+import com.study.spring.library.service.AuthorService;
 import com.study.spring.library.service.BookService;
+import com.study.spring.library.service.GenreService;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -20,10 +25,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class BookController {
 
   private final BookService bookService;
+  private final AuthorService authorService;
+  private final GenreService genreService;
 
   @GetMapping("/books")
   public String listBooks(Model model) {
     Collection<Book> books = bookService.getAll();
+    Collection<Author> authors = authorService.getAll();
+    Collection<Genre> genres = genreService.getAll();
+
+    model.addAttribute("authors", authors);
+    model.addAttribute("genres", genres);
     model.addAttribute("books", books);
     return "books";
   }
@@ -44,7 +56,12 @@ public class BookController {
   @GetMapping("/books/edit/{bookId}")
   public String editBookPage(@PathVariable String bookId, Model model) {
     Book book = bookService.findById(bookId);
+    Collection<Author> authors = authorService.getAll();
+    Collection<Genre> genres = genreService.getAll();
+
     model.addAttribute("book", book);
+    model.addAttribute("authors", authors);
+    model.addAttribute("genres", genres);
     return "book_edit";
   }
 

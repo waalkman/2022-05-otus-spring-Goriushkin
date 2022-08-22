@@ -22,11 +22,15 @@
       </div>
       <div style="margin: 3px">
         <label for="author-input" style="display: inline-block; width: 200px">Author</label>
-        <input id="author-input" th:value="*{getAuthor().getName()}" type="text" value="Бочкин" style="width: 200px" name="author" required>
+        <select id="author-input" required name="author">
+          <option value="Матвей" th:each="author : ${authors}" th:value="${author.getName()}" th:text="${author.getName()}">Матвей</option>
+        </select>
       </div>
       <div style="margin: 3px">
         <label for="genre-input" style="display: inline-block; width: 200px">Genre</label>
-        <input id="genre-input" th:value="*{getGenre().getName()}" type="text" value="Спорт" style="width: 200px" name="genre" required>
+        <select id="genre-input" required name="genre">
+          <option value="соленья" th:each="genre : ${genres}" th:value="${genre.getName()}" th:text="${genre.getName()}">Соленья</option>
+        </select>
       </div>
       <input type="submit" value="Update">
     </form>
