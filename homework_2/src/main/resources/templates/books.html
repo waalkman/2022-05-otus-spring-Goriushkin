@@ -49,7 +49,7 @@
       </td>
       <td>
         <th:block th:unless="${#lists.isEmpty(authors)}" style="display: inline-block">
-          <select id="author-input" name="author">
+          <select id="author-input" name="author" form="create-book">
             <option value="соленья" th:each="author : ${authors}" th:value="${author.getName()}" th:text="${author.getName()}">Матвей</option>
           </select>
         </th:block>
@@ -57,7 +57,7 @@
       </td>
       <td>
         <th:block th:unless="${#lists.isEmpty(genres)}" style="display: inline-block">
-          <select id="genre-input" name="genre">
+          <select id="genre-input" name="genre" form="create-book">
             <option value="соленья" th:each="genre : ${genres}" th:value="${genre.getName()}" th:text="${genre.getName()}">Соленья</option>
           </select>
         </th:block>

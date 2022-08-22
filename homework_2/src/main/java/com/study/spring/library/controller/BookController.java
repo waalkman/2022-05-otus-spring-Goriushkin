@@ -72,7 +72,7 @@ public class BookController {
   }
 
   @PostMapping("/books")
-  public String createAuthorPage(@Valid @ModelAttribute BookDto book) {
+  public String createBookPage(@Valid @ModelAttribute BookDto book) {
     bookService.create(book.toBook(), book.getGenre(), book.getAuthor());
     return "redirect:/books";
   }
