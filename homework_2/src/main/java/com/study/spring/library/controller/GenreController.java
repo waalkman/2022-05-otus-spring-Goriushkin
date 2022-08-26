@@ -5,56 +5,46 @@ import com.study.spring.library.service.GenreService;
 import java.util.Collection;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class GenreController {
 
   private final GenreService genreService;
 
-  @GetMapping("/genres")
-  public String listGenres(Model model) {
-    Collection<Genre> genres = genreService.getAll();
-    model.addAttribute("genres", genres);
-    return "genres";
+  @GetMapping("/api/v1/genres")
+  public Collection<Genre> listGenres() {
+    return genreService.getAll();
   }
 
-  @PostMapping("/genres")
-  public String createGenre(@Valid @ModelAttribute Genre genre) {
-    genreService.create(genre);
-    return "redirect:/genres";
+  @PostMapping("/api/v1/genres")
+  public Genre createGenre(@Valid @RequestBody Genre genre) {
+    return genreService.create(genre);
   }
 
-  @GetMapping("/genres/edit/{genreId}")
-  public String editGenre(@PathVariable String genreId, Model model) {
-    Genre genre = genreService.findById(genreId);
-    model.addAttribute("genre", genre);
-    return "genre_edit";
-  }
-
-  @PostMapping("/genres/edit")
-  public String updateGenre(@Valid @ModelAttribute Genre genre) {
+  @PatchMapping("/api/v1/genres")
+  public void updateGenre(@Valid @RequestBody Genre genre) {
     genreService.update(genre);
-    return "redirect:/genres";
   }
 
-  @PostMapping("/genres/delete")
-  public String deleteAuthor(@RequestParam("genreId") String genreId) {
+  @DeleteMapping("/api/v1/genres/{id}")
+  public void deleteGenre(@PathVariable("id") String genreId) {
     genreService.deleteById(genreId);
-    return "redirect:/genres";
   }
 
   @ExceptionHandler(Exception.class)
-  public String handleException(Model model, Exception e) {
-    model.addAttribute("message", e.getMessage());
-    return "error";
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public String handleException(Exception e) {
+    return e.getMessage();
   }
 }
