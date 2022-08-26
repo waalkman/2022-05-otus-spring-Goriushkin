@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Book</title>
+</head>
+<body>
+<h3>Author modification</h3>
+<div th:object="${author}">
+  <form id="author-update" th:action="@{/authors/edit}" th:method="post">
+    <div style="margin: 3px">
+      <label for="id-input" style="display: inline-block; width: 200px">ID</label>
+      <input id="id-input" name="id" readonly style="width: 200px" th:value="*{getId()}" type="text" value="12esad1">
+    </div>
+    <div style="margin: 3px">
+      <label for="name-input" style="display: inline-block; width: 200px">Author name</label>
+      <input id="name-input" name="name" style="width: 200px" th:value="*{getName()}" type="text" value="Пончик" required>
+    </div>
+    <input type="submit" value="Update">
+  </form>
+</div>
+<div style="margin-top: 20px">
+  <a href="index.html" th:href="@{/}">Go to root page</a>
+</div>
+</body>
+</html>

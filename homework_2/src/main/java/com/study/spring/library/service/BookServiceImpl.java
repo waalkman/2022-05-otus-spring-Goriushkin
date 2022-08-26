@@ -47,6 +47,7 @@ public class BookServiceImpl implements BookService {
     Book currentBook = bookDao.findById(book.getId())
                               .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
 
+    checkAuthorAndGenre(book, genre, author);
     currentBook.setTitle(book.getTitle());
     currentBook.setDescription(book.getDescription());
     currentBook.setAuthor(book.getAuthor());

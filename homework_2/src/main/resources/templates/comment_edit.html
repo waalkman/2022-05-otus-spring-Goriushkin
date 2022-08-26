@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<h3>Comment modification</h3>
+<div th:object="${comment}">
+  <form id="comment-update" th:action="@{/books/{bookId}/comments/{commentId}/edit(bookId=${bookId}, commentId=${comment.getId()})}" th:method="post">
+    <div style="margin: 3px">
+      <label for="id-input" style="display: inline-block; width: 200px">ID</label>
+      <input id="id-input" readonly th:value="*{getId()}" type="text" value="12esad1" style="width: 200px" name="id">
+    </div>
+    <div style="margin: 3px">
+      <label for="title-input" style="display: inline-block; width: 200px">User name</label>
+      <input id="title-input" th:value="*{getUserName()}" type="text" value="Полковник" style="width: 200px" name="userName" required>
+    </div>
+    <div style="margin: 3px">
+      <label for="descr-input" style="display: inline-block; width: 200px">Comment</label>
+      <input id="descr-input" th:value="*{getText()}" type="text" value="Копать отсюда и до обеда" style="width: 200px" name="text" required>
+    </div>
+    <input type="submit" value="Update">
+  </form>
+</div>
+<div style="margin-top: 20px">
+  <a th:href="@{/}" href="index.html">Go to root page</a>
+</div>
+</body>
+</html>

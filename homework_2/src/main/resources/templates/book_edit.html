@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Book</title>
+</head>
+<h3>Book modification</h3>
+  <body>
+  <div th:object="${book}">
+    <form id="book-update" th:action="@{/books/edit}" th:method="post">
+      <div style="margin: 3px">
+        <label for="id-input" style="display: inline-block; width: 200px">ID</label>
+        <input id="id-input" readonly th:value="*{getId()}" type="text" value="12esad1" style="width: 200px" name="id">
+      </div>
+      <div style="margin: 3px">
+        <label for="title-input" style="display: inline-block; width: 200px">Book title</label>
+        <input id="title-input" th:value="*{getTitle()}" type="text" value="Зарядка для ушей" style="width: 200px" name="title" required>
+      </div>
+      <div style="margin: 3px">
+        <label for="descr-input" style="display: inline-block; width: 200px">Book description</label>
+        <input id="descr-input" th:value="*{getDescription()}" type="text" value="Эффективные методы" style="width: 200px" name="description" required>
+      </div>
+      <div style="margin: 3px">
+        <label for="author-input" style="display: inline-block; width: 200px">Author</label>
+        <select id="author-input" required name="author">
+          <option value="Матвей" th:each="author : ${authors}" th:value="${author.getName()}" th:text="${author.getName()}">Матвей</option>
+        </select>
+      </div>
+      <div style="margin: 3px">
+        <label for="genre-input" style="display: inline-block; width: 200px">Genre</label>
+        <select id="genre-input" required name="genre">
+          <option value="соленья" th:each="genre : ${genres}" th:value="${genre.getName()}" th:text="${genre.getName()}">Соленья</option>
+        </select>
+      </div>
+      <input type="submit" value="Update">
+    </form>
+  </div>
+  <div style="margin-top: 20px">
+    <a th:href="@{/}" href="index.html">Go to root page</a>
+  </div>
+  </body>
+</html>
