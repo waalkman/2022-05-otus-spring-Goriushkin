@@ -7,8 +7,11 @@ import java.util.Collection;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -30,36 +33,20 @@ public class BookController {
     return bookService.create(bookDto.toBook(), bookDto.getGenre(), bookDto.getAuthor());
   }
 
-//  @GetMapping("/books/{bookId}")
-//  public String showBbook(@PathVariable String bookId, Model model) {
-//    Book book = bookService.findById(bookId);
-//    model.addAttribute("book", book);
-//    return "book";
-//  }
-//
-//  @PostMapping("/books/delete")
-//  public String deleteBook(@RequestParam("bookId") String bookId) {
-//    bookService.deleteById(bookId);
-//    return "redirect:/books";
-//  }
-//
-//  @GetMapping("/books/edit/{bookId}")
-//  public String editBookPage(@PathVariable String bookId, Model model) {
-//    Book book = bookService.findById(bookId);
-//    Collection<Author> authors = authorService.getAll();
-//    Collection<Genre> genres = genreService.getAll();
-//
-//    model.addAttribute("book", book);
-//    model.addAttribute("authors", authors);
-//    model.addAttribute("genres", genres);
-//    return "book_edit";
-//  }
-//
-//  @PostMapping("/books/edit")
-//  public String updateBook(@Valid @ModelAttribute BookDto book) {
-//    bookService.update(book.toBook(), book.getGenre(), book.getAuthor());
-//    return "redirect:/books/" + book.getId();
-//  }
+  @GetMapping("/api/v1/books/{bookId}")
+  public Book getBook(@PathVariable String bookId) {
+    return bookService.findById(bookId);
+  }
+
+  @DeleteMapping("/api/v1/books/{id}")
+  public void deleteBook(@PathVariable("id") String bookId) {
+    bookService.deleteById(bookId);
+  }
+
+  @PatchMapping("/api/v1/books")
+  public void updateBook(@Valid @RequestBody BookDto book) {
+    bookService.update(book.toBook(), book.getGenre(), book.getAuthor());
+  }
 
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
