@@ -1,14 +1,16 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Book;
-import java.util.Collection;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-public interface BookDao extends MongoRepository<Book, String> {
+public interface BookDao extends ReactiveMongoRepository<Book, String> {
 
-  Optional<Book> findByTitle(String title);
-  Collection<Book> findByAuthor(String author);
-  Collection<Book> findByGenre(String genre);
+  Mono<Book> findByTitle(String title);
+  Flux<Book> findAllByAuthor(String author);
+  Flux<Book> findAllByGenre(String genre);
+  Mono<Boolean> existsByAuthorId(String authorId);
+  Mono<Boolean> existsByGenreId(String genreId);
 
 }

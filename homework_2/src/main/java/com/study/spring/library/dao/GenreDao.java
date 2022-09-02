@@ -1,11 +1,12 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Genre;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import reactor.core.publisher.Mono;
 
-public interface GenreDao extends MongoRepository<Genre, String> {
+public interface GenreDao extends ReactiveMongoRepository<Genre, String> {
 
-  Optional<Genre> findByName(String name);
+  Mono<Genre> findByName(String name);
+  Mono<Boolean> existsByName(String name);
 
 }

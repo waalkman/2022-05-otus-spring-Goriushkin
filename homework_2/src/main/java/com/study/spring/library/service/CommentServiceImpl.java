@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -17,68 +18,73 @@ public class CommentServiceImpl implements CommentService {
   private final BookDao bookDao;
 
   @Override
-  public void create(Comment comment, String bookId) {
-    Book book = getBook(bookId);
-    if (book.getComments() == null) {
-      book.setComments(new ArrayList<>());
-    }
-    book.getComments().add(comment);
-    bookDao.save(book);
+  public Mono<Book> create(Comment comment, String bookId) {
+    return bookDao.findById(bookId)
+                  .switchIfEmpty(Mono.error(new EntityNotFoundException("Book not found", "Book")))
+        .flatMap(book -> {
+          if (book.getComments() == null) {
+            book.setComments(new ArrayList<>());
+          }
+          book.getComments().add(comment);
+          return bookDao.save(book);
+        });
   }
 
   @Override
   public Comment findById(String bookId, String id) {
-    return bookDao.findById(bookId)
-                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
-                  .getComments()
-                  .stream()
-                  .filter(c -> c.getId().equals(id))
-                  .findAny()
-                  .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
+    throw new RuntimeException("Not implemented");
+//    return bookDao.findById(bookId)
+//                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
+//                  .getComments()
+//                  .stream()
+//                  .filter(c -> c.getId().equals(id))
+//                  .findAny()
+//                  .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
   }
 
   @Override
   public Collection<Comment> findByBook(String bookId) {
-    return bookDao.findById(bookId)
-                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
-                  .getComments();
+    throw new RuntimeException("Not implemented");
+//    return bookDao.findById(bookId)
+//                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
+//                  .getComments();
   }
 
   @Override
-  public void update(Comment comment, String bookId) {
-    Book book = getBook(bookId);
-    book.setComments(
-        book.getComments()
-            .stream()
-            .map(Comment::copy)
-            .collect(Collectors.toList()));
+  public Mono<Book> update(Comment comment, String bookId) {
+    return bookDao.findById(bookId)
+                  .switchIfEmpty(Mono.error(new EntityNotFoundException("Book not found", "Book")))
+                  .doOnNext(book -> {
+                    book.setComments(
+                        book.getComments()
+                            .stream()
+                            .map(Comment::copy)
+                            .collect(Collectors.toList()));
 
-    Comment foundComment = book.getComments()
-                               .stream()
-                               .filter(c -> c.getId().equals(comment.getId()))
-                               .findAny()
-                               .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
+                    Comment foundComment = book.getComments()
+                                               .stream()
+                                               .filter(c -> c.getId().equals(comment.getId()))
+                                               .findAny()
+                                               .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
 
-    foundComment.setUserName(comment.getUserName());
-    foundComment.setText(comment.getText());
+                    foundComment.setUserName(comment.getUserName());
+                    foundComment.setText(comment.getText());
+                  })
+                  .flatMap(bookDao::save);
 
-    bookDao.save(book);
   }
 
   @Override
-  public void deleteById(String bookId, String id) {
-    Book book = getBook(bookId);
-    book.setComments(
-        book.getComments()
-            .stream()
-            .filter(c -> !c.getId().equals(id))
-            .collect(Collectors.toList()));
-
-    bookDao.save(book);
-  }
-
-  private Book getBook(String bookId) {
+  public Mono<Book> deleteById(String bookId, String id) {
     return bookDao.findById(bookId)
-                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
+                  .switchIfEmpty(Mono.error(new EntityNotFoundException("Book not found", "Book")))
+                  .doOnNext(book -> {
+                    book.setComments(
+                        book.getComments()
+                            .stream()
+                            .filter(c -> !c.getId().equals(id))
+                            .collect(Collectors.toList()));
+                  })
+                  .flatMap(bookDao::save);
   }
 }
