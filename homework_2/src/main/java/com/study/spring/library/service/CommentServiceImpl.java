@@ -5,7 +5,6 @@ import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,33 +20,13 @@ public class CommentServiceImpl implements CommentService {
   public Mono<Book> create(Comment comment, String bookId) {
     return bookDao.findById(bookId)
                   .switchIfEmpty(Mono.error(new EntityNotFoundException("Book not found", "Book")))
-        .flatMap(book -> {
-          if (book.getComments() == null) {
-            book.setComments(new ArrayList<>());
-          }
-          book.getComments().add(comment);
-          return bookDao.save(book);
-        });
-  }
-
-  @Override
-  public Comment findById(String bookId, String id) {
-    throw new RuntimeException("Not implemented");
-//    return bookDao.findById(bookId)
-//                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
-//                  .getComments()
-//                  .stream()
-//                  .filter(c -> c.getId().equals(id))
-//                  .findAny()
-//                  .orElseThrow(() -> new EntityNotFoundException("Comment not found", "Comment"));
-  }
-
-  @Override
-  public Collection<Comment> findByBook(String bookId) {
-    throw new RuntimeException("Not implemented");
-//    return bookDao.findById(bookId)
-//                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"))
-//                  .getComments();
+                  .flatMap(book -> {
+                    if (book.getComments() == null) {
+                      book.setComments(new ArrayList<>());
+                    }
+                    book.getComments().add(comment);
+                    return bookDao.save(book);
+                  });
   }
 
   @Override
@@ -55,12 +34,6 @@ public class CommentServiceImpl implements CommentService {
     return bookDao.findById(bookId)
                   .switchIfEmpty(Mono.error(new EntityNotFoundException("Book not found", "Book")))
                   .doOnNext(book -> {
-                    book.setComments(
-                        book.getComments()
-                            .stream()
-                            .map(Comment::copy)
-                            .collect(Collectors.toList()));
-
                     Comment foundComment = book.getComments()
                                                .stream()
                                                .filter(c -> c.getId().equals(comment.getId()))
@@ -71,7 +44,6 @@ public class CommentServiceImpl implements CommentService {
                     foundComment.setText(comment.getText());
                   })
                   .flatMap(bookDao::save);
-
   }
 
   @Override

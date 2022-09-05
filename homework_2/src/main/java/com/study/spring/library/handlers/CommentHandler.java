@@ -27,7 +27,8 @@ public class CommentHandler {
   public Mono<ServerResponse> create(ServerRequest serverRequest) {
     String bookId = serverRequest.pathVariable("bookId");
     return serverRequest.bodyToMono(Comment.class)
-                        .map(comment -> commentService.create(comment, bookId))
+                        .map(comment ->
+                                 commentService.create(new Comment(comment.getText(), comment.getUserName()), bookId))
                         .flatMap(book ->
                                      ServerResponse.ok()
                                                    .contentType(MediaType.APPLICATION_JSON)

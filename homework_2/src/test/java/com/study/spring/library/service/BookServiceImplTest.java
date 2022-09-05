@@ -1,156 +1,145 @@
 package com.study.spring.library.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.study.spring.library.dao.AuthorDao;
-import com.study.spring.library.dao.BookDao;
-import com.study.spring.library.dao.GenreDao;
-import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.Genre;
 import com.study.spring.library.exceptions.EntityNotFoundException;
-import java.util.Optional;
+import io.mongock.runner.springboot.EnableMongock;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-@ExtendWith(MockitoExtension.class)
+@EnableMongock
+@SpringBootTest
 class BookServiceImplTest {
 
-  @Mock
-  private BookDao bookDao;
-  @Mock
-  private AuthorDao authorDao;
-  @Mock
-  private GenreDao genreDao;
-
-  @InjectMocks
-  private BookServiceImpl bookService;
+  @Autowired
+  private BookService bookService;
 
   @Test
   void getAll_success() {
-    bookService.findAll();
-    verify(bookDao).findAll();
+    Flux<Book> books = bookService.findAll();
+
+    StepVerifier.create(books)
+                .expectNextCount(2)
+                .verifyComplete();
   }
 
   @Test
   void create_success() {
-    String genreName = "test_genre";
-    String authorName = "test_author";
-    Genre genre = Genre.builder().name(genreName).build();
-    Author author = Author.builder().name(authorName).build();
+    String genreName = "25";
+    String authorName = "Таня";
     Book book = Book.builder()
                     .title("t")
                     .description("d")
-                    .genre(genre)
-                    .author(author)
                     .build();
 
-    when(authorDao.findByName(authorName)).thenReturn(Mono.just(author));
-    when(genreDao.findByName(genreName)).thenReturn(Mono.just(genre));
+    Mono<Book> createdBook = bookService.create(book, genreName, authorName);
 
-    bookService.create(book, genreName, authorName);
-
-    verify(genreDao).findByName(genreName);
-    verify(authorDao).findByName(authorName);
-    verify(bookDao).save(book);
+    StepVerifier.create(createdBook)
+                .expectNextCount(1)
+                .verifyComplete();
   }
 
-  //TODO
-  //TODO
-  //TODO
-  //TODO
-  //TODO
 
+  @Test
+  void findById_success() {
+    Book book = bookService.findAll()
+                           .blockFirst();
 
-//
-//  @Test
-//  void findById_success() {
-//    String bookId = "123";
-//    Book expectedBook = Book.builder().id(bookId).title("test").build();
-//    when(bookDao.findById(bookId)).thenReturn(Optional.of(expectedBook));
-//
-//    Book actualBook = bookService.findById(bookId);
-//
-//    assertEquals(expectedBook, actualBook);
-//  }
-//
-//  @Test
-//  void findById_notFound() {
-//    when(bookDao.findById(any())).thenReturn(Optional.empty());
-//
-//    assertThrows(EntityNotFoundException.class, () -> bookService.findById(any()));
-//  }
-//
-//  @Test
-//  void findByTitle_success() {
-//    String title = "title_";
-//    Book expectedBook = Book.builder().id("123").title(title).build();
-//    when(bookDao.findByTitle(title)).thenReturn(Optional.of(expectedBook));
-//
-//    Book actualBook = bookService.findByTitle(title);
-//
-//    assertEquals(expectedBook, actualBook);
-//  }
-//
-//  @Test
-//  void findByTitle_notFound() {
-//    when(bookDao.findByTitle(any())).thenReturn(Optional.empty());
-//
-//    assertThrows(EntityNotFoundException.class, () -> bookService.findByTitle(any()));
-//  }
-//
-//  @Test
-//  void update_success() {
-//    String bookId = "idd";
-//    String genreName = "test_genre";
-//    String authorName = "test_author";
-//    Genre genre = Genre.builder().name(genreName).build();
-//    Author author = Author.builder().name(authorName).build();
-//    Book book = Book.builder()
-//                    .id(bookId)
-//                    .title("t")
-//                    .description("d")
-//                    .genre(genre)
-//                    .author(author)
-//                    .build();
-//
-//    when(bookDao.findById(bookId)).thenReturn(Optional.of(book));
-//    when(authorDao.findByName(authorName)).thenReturn(Optional.of(author));
-//    when(genreDao.findByName(genreName)).thenReturn(Optional.of(genre));
-//
-//    bookService.update(book, genreName, authorName);
-//
-//    verify(bookDao).findById(bookId);
-//    verify(bookDao).save(book);
-//  }
-//
-//  @Test
-//  void update_notFound() {
-//    Book book = Book.builder()
-//                    .id("123")
-//                    .title("t")
-//                    .build();
-//
-//    when(bookDao.findById(any())).thenReturn(Optional.empty());
-//
-//    assertThrows(EntityNotFoundException.class, () -> bookService.update(book, null, null));
-//  }
-//
-//  @Test
-//  void deleteById_success() {
-//    String bookId = "123";
-//
-//    bookService.deleteById(bookId);
-//
-//    verify(bookDao).deleteById(bookId);
-//  }
+    Mono<Book> foundByid = bookService.findById(book.getId());
+
+    StepVerifier.create(foundByid)
+                .expectNext(book)
+                .verifyComplete();
+  }
+
+  @Test
+  void findById_notFound() {
+    Mono<Book> foundByid = bookService.findById("123123");
+
+    StepVerifier.create(foundByid)
+                .verifyComplete();
+  }
+
+  @Test
+  void findByTitle_success() {
+    String title = "Как понять слона";
+    Mono<Book> foundByTitle = bookService.findByTitle(title);
+
+    StepVerifier.create(foundByTitle)
+                .expectNextCount(1)
+                .verifyComplete();
+  }
+
+  @Test
+  void findByTitle_notFound() {
+    Mono<Book> foundByTitle = bookService.findByTitle("asefareg3a");
+
+    StepVerifier.create(foundByTitle)
+                .verifyComplete();
+  }
+
+  @Test
+  void update_success() {
+    Book book = bookService.findAll()
+                           .blockFirst();
+
+    String bookId = book.getId();
+    String genreName = "воздух";
+    String authorName = "Софья";
+    Book bookToUpdate = Book.builder()
+                            .id(bookId)
+                            .title("t")
+                            .description("d")
+                            .build();
+
+    Mono<Book> updatedBook = bookService.update(bookToUpdate, genreName, authorName);
+
+    StepVerifier.create(updatedBook)
+                .assertNext(b -> {
+                  assertEquals(authorName, b.getAuthor()
+                                            .getName());
+                  assertEquals(genreName, b.getGenre()
+                                           .getName());
+                })
+                .verifyComplete();
+  }
+
+  @Test
+  void update_notFound() {
+    Book book = bookService.findAll()
+                           .blockFirst();
+
+    Mono<Book> updatedBook = bookService.update(book, "asd", "dsfsdf");
+
+    StepVerifier.create(updatedBook)
+                .verifyError(EntityNotFoundException.class);
+
+  }
+
+  @Test
+  void deleteById_success() {
+    Book book = createBook();
+
+    Mono<Void> deleted = bookService.deleteById(book.getId());
+
+    StepVerifier.create(deleted)
+                .verifyComplete();
+  }
+
+  private Book createBook() {
+    String genreName = "25";
+    String authorName = "Софья";
+    Book book = Book.builder()
+                    .title("t")
+                    .description("d")
+                    .build();
+
+    return bookService.create(book, genreName, authorName).block();
+  }
 
 }

@@ -19,7 +19,7 @@ import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 
 @Configuration(proxyBeanMethods = false)
-public class RoutersConfig {
+public class LibraryRoutesConfig {
 
   @Bean
   public RouterFunction<ServerResponse> routeAuthors(AuthorHandler authorHandler) {

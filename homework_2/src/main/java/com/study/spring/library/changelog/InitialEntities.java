@@ -9,7 +9,6 @@ import io.mongock.api.annotations.Execution;
 import io.mongock.api.annotations.RollbackExecution;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 @ChangeUnit(id = "init-entities", order = "001", author = "spg", runAlways = true)
@@ -87,16 +86,8 @@ public class InitialEntities {
   public void initComments() {
     book.setComments(
         List.of(
-            Comment.builder()
-                   .id(new ObjectId().toString())
-                   .text("Очень интересно, буду читать еще")
-                   .userName("Матроскин")
-                   .build(),
-            Comment.builder()
-                   .id(new ObjectId().toString())
-                   .text("Продам гараж, отдам котят")
-                   .userName("Газон")
-                   .build()));
+            new Comment("Очень интересно, буду читать еще", "Матроскин"),
+            new Comment("Продам гараж, отдам котят", "Газон")));
 
     template.save(book);
   }
