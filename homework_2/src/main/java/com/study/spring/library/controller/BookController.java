@@ -8,7 +8,6 @@ import com.study.spring.library.service.AuthorService;
 import com.study.spring.library.service.BookService;
 import com.study.spring.library.service.GenreService;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -41,7 +40,7 @@ public class BookController {
   }
 
   @GetMapping("/books/{bookId}")
-  public String showBbook(@PathVariable String bookId, Model model) {
+  public String showBook(@PathVariable String bookId, Model model) {
     Book book = bookService.findById(bookId);
     model.addAttribute("book", book);
     return "book";
