@@ -4,6 +4,7 @@ import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.domain.Comment;
 import com.study.spring.library.domain.Genre;
+import com.study.spring.library.domain.User;
 import io.mongock.api.annotations.ChangeUnit;
 import io.mongock.api.annotations.Execution;
 import io.mongock.api.annotations.RollbackExecution;
@@ -32,6 +33,7 @@ public class InitialEntities {
     initGenres();
     initBooks();
     initComments();
+    initUsers();
   }
 
   @RollbackExecution
@@ -43,6 +45,7 @@ public class InitialEntities {
     template.dropCollection(Book.class);
     template.dropCollection(Author.class);
     template.dropCollection(Genre.class);
+    template.dropCollection(User.class);
   }
 
   public void initAuthors() {
@@ -99,5 +102,10 @@ public class InitialEntities {
                    .build()));
 
     template.save(book);
+  }
+
+  public void initUsers() {
+    template.save(new User("admin", "123"));
+    template.save(new User("usr", "345"));
   }
 }

@@ -1,5 +1,6 @@
 package com.study.spring.library.domain;
 
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class Genre {
 
   @Id
   private String id;
+  @NotEmpty
   private String name;
 
 }
