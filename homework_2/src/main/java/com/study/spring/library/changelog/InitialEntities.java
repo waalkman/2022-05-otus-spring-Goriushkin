@@ -10,10 +10,9 @@ import io.mongock.api.annotations.Execution;
 import io.mongock.api.annotations.RollbackExecution;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-@ChangeUnit(id = "init-entities", order = "001", author = "spg", runAlways = true)
+@ChangeUnit(id = "init-entities", order = "001", author = "spg", runAlways = true, transactional = false)
 @RequiredArgsConstructor
 public class InitialEntities {
 
@@ -49,26 +48,27 @@ public class InitialEntities {
   }
 
   public void initAuthors() {
-    author1 = Author.builder().name("Женя").build();
+    author1 = Author.builder().id("0000a0000b0000c0000d0000").name("Женя").build();
     template.save(author1);
-    template.save(Author.builder().name("Ваня").build());
-    author2 = Author.builder().name("Маня").build();
+    template.save(Author.builder().id("0000a0000b0000c0000d0001").name("Ваня").build());
+    author2 = Author.builder().id("0000a0000b0000c0000d0002").name("Маня").build();
     template.save(author2);
-    template.save(Author.builder().name("Таня").build());
-    template.save(Author.builder().name("Софья").build());
+    template.save(Author.builder().id("0000a0000b0000c0000d0003").name("Таня").build());
+    template.save(Author.builder().id("0000a0000b0000c0000d0004").name("Софья").build());
   }
 
   public void initGenres() {
-    genre1 = Genre.builder().name("конь").build();
+    genre1 = Genre.builder().id("0000a0000b0000c0000d0005").name("конь").build();
     template.save(genre1);
-    genre2 = Genre.builder().name("25").build();
+    genre2 = Genre.builder().id("0000a0000b0000c0000d0006").name("25").build();
     template.save(genre2);
-    template.save(Genre.builder().name("телефон").build());
-    template.save(Genre.builder().name("воздух").build());
+    template.save(Genre.builder().id("0000a0000b0000c0000d0007").name("телефон").build());
+    template.save(Genre.builder().id("0000a0000b0000c0000d0008").name("воздух").build());
   }
 
   public void initBooks() {
     Book book1 = Book.builder()
+                      .id("0000a0000b0000c0000d0009")
                       .title("Как понять слона")
                       .description("Слоны для чайников")
                       .author(author1)
@@ -78,6 +78,7 @@ public class InitialEntities {
     template.save(book1);
 
     book = Book.builder()
+               .id("0000a0000b0000c0000d0010")
                .title("Руководство по завариванию топора")
                .description("Кулинарная книга для колобков")
                .author(author2)
@@ -91,12 +92,12 @@ public class InitialEntities {
     book.setComments(
         List.of(
             Comment.builder()
-                   .id(new ObjectId().toString())
+                   .id("0000a0000b0000c0000d0011")
                    .text("Очень интересно, буду читать еще")
                    .userName("Матроскин")
                    .build(),
             Comment.builder()
-                   .id(new ObjectId().toString())
+                   .id("0000a0000b0000c0000d0012")
                    .text("Продам гараж, отдам котят")
                    .userName("Газон")
                    .build()));
@@ -105,7 +106,8 @@ public class InitialEntities {
   }
 
   public void initUsers() {
-    template.save(new User("admin", "123"));
-    template.save(new User("usr", "345"));
+    template.save(new User("0000a0000b0000c0000d0013", "admin", "123"));
+    template.save(new User("0000a0000b0000c0000d0014", "viewer", "345"));
+    template.save(new User("0000a0000b0000c0000d0015", "manager", "567"));
   }
 }

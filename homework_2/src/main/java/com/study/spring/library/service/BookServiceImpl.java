@@ -4,6 +4,7 @@ import com.study.spring.library.dao.AuthorDao;
 import com.study.spring.library.dao.BookDao;
 import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
+import com.study.spring.library.exceptions.ConsistencyException;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +28,7 @@ public class BookServiceImpl implements BookService {
   public Book create(Book book, String genre, String author) {
     checkAuthorAndGenre(book, genre, author);
     book.setComments(new ArrayList<>());
-    return bookDao.save(book);
+    return save(book);
   }
 
   @Override
@@ -53,7 +54,15 @@ public class BookServiceImpl implements BookService {
     currentBook.setAuthor(book.getAuthor());
     currentBook.setGenre(book.getGenre());
 
-    bookDao.save(currentBook);
+    save(currentBook);
+  }
+
+  private Book save(Book book) {
+    if (bookDao.existsByTitle(book.getTitle())) {
+      throw new ConsistencyException("Cannot create book. There is another book with that title in database!");
+    } else {
+      return bookDao.save(book);
+    }
   }
 
   @Override
