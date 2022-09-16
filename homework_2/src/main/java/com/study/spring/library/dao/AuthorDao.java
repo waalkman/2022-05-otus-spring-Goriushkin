@@ -11,19 +11,23 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 public interface AuthorDao extends MongoRepository<Author, String> {
 
-  @PostAuthorize("hasPermission(returnObject, 'READ')")
+  @PostAuthorize("hasPermission(returnObject.get(), 'READ') || hasPermission(returnObject.get(), 'ADMINISTRATION')")
   Optional<Author> findByName(String name);
 
-  @PostFilter("hasPermission(filterObject, 'READ')")
+  @PostFilter("hasPermission(filterObject, 'READ') || hasPermission(filterObject, 'ADMINISTRATION')")
   List<Author> findAll();
 
-  @PostAuthorize("hasPermission(returnObject, 'READ')")
-  Optional<Author> findById(String id);
+  @PreAuthorize(
+      "hasPermission(#id, 'com.study.spring.library.domain.Author', 'DELETE')"
+          + "|| hasPermission(#id, 'com.study.spring.library.domain.Author', 'ADMINISTRATION')")
+  Optional<Author> findById(@Param("id") String id);
 
-  @PreAuthorize("hasPermission(#author, 'WRITE')")
+  @PreAuthorize("hasAnyAuthority({'ADMIN', 'MANAGER'}) || hasPermission(#author, 'WRITE') || hasPermission(#author, 'ADMINISTRATION')")
   Author save(@Param("author") Author author);
 
-  @PreAuthorize("hasPermission(#id, 'com.study.spring.library.domain.Author', 'DELETE')")
+  @PreAuthorize(
+      "hasPermission(#id, 'com.study.spring.library.domain.Author', 'DELETE')"
+          + "|| hasPermission(#id, 'com.study.spring.library.domain.Author', 'ADMINISTRATION')")
   void deleteById(@Param("id") String id);
 
   boolean existsByName(String name);

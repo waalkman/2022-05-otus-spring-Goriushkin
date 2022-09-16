@@ -106,8 +106,7 @@ public class InitialEntities {
   }
 
   public void initUsers() {
-    template.save(new User("0000a0000b0000c0000d0013", "admin", "123"));
-    template.save(new User("0000a0000b0000c0000d0014", "viewer", "345"));
-    template.save(new User("0000a0000b0000c0000d0015", "manager", "567"));
+    template.save(new User("0000a0000b0000c0000d0013", "admin", "123", List.of("ADMIN")));
+    template.save(new User("0000a0000b0000c0000d0014", "user", "123", List.of("USER")));
   }
 }

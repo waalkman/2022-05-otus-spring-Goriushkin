@@ -1,5 +1,6 @@
 package com.study.spring.library.domain;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,5 +17,6 @@ public class User {
   private String id;
   private String userName;
   private String pwd;
+  private List<String> authorities;
 
 }
