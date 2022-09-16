@@ -2,9 +2,10 @@ package com.study.spring.library.security;
 
 import com.study.spring.library.domain.User;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @AllArgsConstructor
@@ -14,7 +15,9 @@ public class LibraryUserDetails implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Collections.emptyList();
+    return user.getAuthorities().stream()
+               .map(SimpleGrantedAuthority::new)
+               .collect(Collectors.toList());
   }
 
   @Override

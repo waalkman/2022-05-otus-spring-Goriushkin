@@ -1,8 +1,17 @@
 version: '3.1'
 
 services:
-  db:
+  mongo:
     image: mongo
     restart: always
     ports:
       - "27017:27017"
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: userPASS
+      POSTGRES_DB: acl_db

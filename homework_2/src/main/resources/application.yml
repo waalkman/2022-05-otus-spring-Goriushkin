@@ -1,9 +1,24 @@
 spring:
+  cache:
+    type: caffeine
   data:
     mongodb:
       database: library
       host: localhost
       port: 27017
+  datasource:
+    url: jdbc:postgresql://localhost:5432/acl_db
+    username: dbuser
+    password: userPASS
+    driver-class-name: "org.postgresql.Driver"
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  liquibase:
+    enabled: true
+    change-log: "classpath:/db/changelog/db.changelog-master.yml"
 logging:
   level:
     root: info

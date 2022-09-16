@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/acl/
+  - includeAll:
+      path: db/changelog/data/
+#  - includeAll:
+#      path: db/changelog/data/
