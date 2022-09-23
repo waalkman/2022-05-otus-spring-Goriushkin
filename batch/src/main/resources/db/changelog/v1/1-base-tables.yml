@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-base-tables-genres
+      author: waalkman
+      changes:
+        - createTable:
+            tableName: genres
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_genre
+              - column:
+                  name: name
+                  type: varchar(50)
+              - column:
+                  name: mongo_id
+                  type: varchar(50)
+        - addUniqueConstraint:
+            columnNames: name
+            tableName: genres
+        - addUniqueConstraint:
+            columnNames: mongo_id
+            tableName: genres
+  - changeSet:
+      id: 0001-base-tables-authors
+      author: waalkman
+      changes:
+        - createTable:
+            tableName: authors
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_author
+              - column:
+                  name: name
+                  type: varchar(50)
+              - column:
+                  name: mongo_id
+                  type: varchar(50)
+        - addUniqueConstraint:
+            columnNames: name
+            tableName: authors
+        - addUniqueConstraint:
+            columnNames: mongo_id
+            tableName: authors
+  - changeSet:
+      id: 0001-base-tables-books
+      author: waalkman
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_book
+              - column:
+                  name: title
+                  type: varchar(50)
+              - column:
+                  name: description
+                  type: varchar(50)
+              - column:
+                  name: author_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_book_author
+                    references: authors(id)
+              - column:
+                  name: genre_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_book_genre
+                    references: genres(id)
+              - column:
+                  name: mongo_id
+                  type: varchar(50)
+        - addUniqueConstraint:
+            columnNames: title,description,author_id,genre_id
+            tableName: books
+        - addUniqueConstraint:
+            columnNames: mongo_id
+            tableName: books
