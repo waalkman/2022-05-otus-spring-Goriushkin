@@ -4,9 +4,35 @@ spring:
       database: library
       host: localhost
       port: 27017
+    rest:
+      base-path: /wow
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - "health"
+          - "logfile"
+          - "metrics"
+          - "prometheus"
+  endpoint:
+    logfile:
+      external-file: log/log.log
+    health:
+      show-details: always
 logging:
   level:
     root: info
+# почему-то не работает
+#  https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints
+#  Returns the contents of the logfile (if the logging.file.name or the logging.file.path property has been set).
+#  Supports the use of the HTTP Range header to retrieve part of the log file’s content.
+#  file:
+#    path: /log
+#    name: log.log
 mongock:
 #  runner-type: "ApplicationRunner" # default
   runner-type: "InitializingBean"
