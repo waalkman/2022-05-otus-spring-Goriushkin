@@ -1,85 +1,56 @@
 package com.study.spring.library.controller;
 
-import com.study.spring.library.domain.Author;
 import com.study.spring.library.domain.Book;
-import com.study.spring.library.domain.Genre;
 import com.study.spring.library.dto.BookDto;
-import com.study.spring.library.service.AuthorService;
 import com.study.spring.library.service.BookService;
-import com.study.spring.library.service.GenreService;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class BookController {
 
   private final BookService bookService;
-  private final AuthorService authorService;
-  private final GenreService genreService;
 
-  @GetMapping("/books")
-  public String listBooks(Model model) {
-    Collection<Book> books = bookService.getAll();
-    Collection<Author> authors = authorService.getAll();
-    Collection<Genre> genres = genreService.getAll();
-
-    model.addAttribute("authors", authors);
-    model.addAttribute("genres", genres);
-    model.addAttribute("books", books);
-    return "books";
+  @GetMapping("/api/v1/books")
+  public Collection<Book> listBooks() {
+    return bookService.getAll();
   }
 
-  @GetMapping("/books/{bookId}")
-  public String showBbook(@PathVariable String bookId, Model model) {
-    Book book = bookService.findById(bookId);
-    model.addAttribute("book", book);
-    return "book";
+  @PostMapping("/api/v1/books")
+  public Book createBook(@Valid @RequestBody BookDto bookDto) {
+    return bookService.create(bookDto.toBook(), bookDto.getGenre(), bookDto.getAuthor());
   }
 
-  @PostMapping("/books/delete")
-  public String deleteBook(@RequestParam("bookId") String bookId) {
+  @GetMapping("/api/v1/books/{bookId}")
+  public Book getBook(@PathVariable String bookId) {
+    return bookService.findById(bookId);
+  }
+
+  @DeleteMapping("/api/v1/books/{id}")
+  public void deleteBook(@PathVariable("id") String bookId) {
     bookService.deleteById(bookId);
-    return "redirect:/books";
   }
 
-  @GetMapping("/books/edit/{bookId}")
-  public String editBookPage(@PathVariable String bookId, Model model) {
-    Book book = bookService.findById(bookId);
-    Collection<Author> authors = authorService.getAll();
-    Collection<Genre> genres = genreService.getAll();
-
-    model.addAttribute("book", book);
-    model.addAttribute("authors", authors);
-    model.addAttribute("genres", genres);
-    return "book_edit";
-  }
-
-  @PostMapping("/books/edit")
-  public String updateBook(@Valid @ModelAttribute BookDto book) {
+  @PatchMapping("/api/v1/books")
+  public void updateBook(@Valid @RequestBody BookDto book) {
     bookService.update(book.toBook(), book.getGenre(), book.getAuthor());
-    return "redirect:/books/" + book.getId();
-  }
-
-  @PostMapping("/books")
-  public String createBookPage(@Valid @ModelAttribute BookDto book) {
-    bookService.create(book.toBook(), book.getGenre(), book.getAuthor());
-    return "redirect:/books";
   }
 
   @ExceptionHandler(Exception.class)
-  public String handleException(Model model, Exception e) {
-    model.addAttribute("message", e.getMessage());
-    return "error";
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public String handleException(Exception e) {
+    return e.getMessage();
   }
 }
