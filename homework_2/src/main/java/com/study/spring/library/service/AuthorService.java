@@ -1,15 +1,16 @@
 package com.study.spring.library.service;
 
 import com.study.spring.library.domain.Author;
-import java.util.Collection;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface AuthorService {
 
-  Collection<Author> getAll();
-  Author create(Author author);
-  Author findById(String id);
-  Author findByName(String name);
-  void update(Author author);
-  void deleteById(String id);
+  Flux<Author> findAll();
+  Mono<Author> create(Author author);
+  Mono<Author> findById(String id);
+  Mono<Author> findByName(String name);
+  Mono<Author> update(Author author);
+  Mono<Void> deleteById(String id);
 
 }

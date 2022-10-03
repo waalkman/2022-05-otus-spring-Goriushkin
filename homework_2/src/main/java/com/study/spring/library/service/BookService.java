@@ -1,15 +1,16 @@
 package com.study.spring.library.service;
 
 import com.study.spring.library.domain.Book;
-import java.util.Collection;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface BookService {
 
-  Collection<Book> getAll();
-  Book create(Book book, String genre, String author);
-  Book findById(String id);
-  Book findByTitle(String title);
-  void update(Book book, String genre, String author);
-  void deleteById(String id);
+  Flux<Book> findAll();
+  Mono<Book> create(Book book, String genre, String author);
+  Mono<Book> findById(String id);
+  Mono<Book> findByTitle(String title);
+  Mono<Book> update(Book book, String genre, String author);
+  Mono<Void> deleteById(String id);
 
 }

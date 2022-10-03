@@ -1,25 +1,855 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Library</title>
+  <title></title>
 </head>
 <body>
-<h3>Library API</h3>
-<div style="margin: 3px">
-  <a href="authors.html" th:href="@{/authors}">
-    <button style="width:200px" type="button">Authors</button>
-  </a>
-</div>
-<div style="margin: 3px">
-  <a href="genres.html" th:href="@{/genres}">
-    <button style="width:200px" type="button">Genres</button>
-  </a>
-</div>
-<div style="margin: 3px">
-  <a href="books.html" th:href="@{/books}">
-    <button style="width:200px" type="button">Books</button>
-  </a>
-</div>
+<h3 id="header"></h3>
+<div id="dataContainer"></div>
 </body>
+<script>
+  function renderRootApi() {
+    cleanContainer()
+    changeTitle("Library")
+    changeHeader("Library API")
+
+    const menu = document.createElement("div")
+    menu.innerHTML = `
+      <div  style="margin: 3px">
+        <button style="width:200px" type="button" onclick="authorsPage()">Authors</button>
+      </div>
+      <div style="margin: 3px">
+        <button style="width:200px" type="button" onclick="genresPage()">Genres</button>
+      </div>
+      <div style="margin: 3px">
+        <button style="width:200px" type="button" onclick="booksPage()">Books</button>
+      </div>
+      `
+
+    document.getElementById("dataContainer")
+    .appendChild(menu)
+  }
+  window.onload = renderRootApi
+</script>
+<script>
+  function cleanContainer() {
+    document.getElementById("dataContainer").innerHTML = ""
+  }
+
+  function changeTitle(newTitle) {
+    document.title = newTitle
+  }
+
+  function changeHeader(newHeader) {
+    document.getElementById("header")
+    .innerHTML = newHeader
+  }
+
+  function appendChildToContainer(child) {
+    document.getElementById("dataContainer")
+    .appendChild(child)
+  }
+
+  function insertCellIntoRow(row, cellData, nodeId) {
+    const cell = document.createElement("td")
+    cell.setAttribute("id", nodeId)
+    cell.innerHTML = cellData
+    row.appendChild(cell)
+  }
+
+  function createButton(onclickFuncCall, text) {
+    return `<button type=\"button\" onClick=\"${onclickFuncCall}\">${text}</button>`
+  }
+
+  function renderError(errText) {
+    changeTitle("Library error page")
+    changeHeader("Error executing operation")
+    const errorNode = document.createElement("div")
+    errorNode.innerHTML = errText
+    appendChildToContainer(errorNode)
+    appendChildToContainer(rootLink)
+  }
+
+  function appendErrorMsg(target, message) {
+      const invalidInputMsg = document.createElement("span")
+      invalidInputMsg.style.color = 'red'
+      invalidInputMsg.innerHTML = message
+      target.appendChild(invalidInputMsg)
+  }
+
+  function appendErrorIfNotExists(node, entityName) {
+    if (node.children.length < 2) {
+      appendErrorMsg(node, `${entityName} must not be empty!`)
+    }
+  }
+
+  const rootLink = document.createElement("div")
+  rootLink.innerHTML = createButton(`renderRootApi()`, "root page")
+
+</script>
+<script>
+  function authorsPage() {
+    cleanContainer()
+    changeTitle("Authors")
+    changeHeader("Authors list")
+
+    const authorsTable = document.createElement("div")
+    authorsTable.innerHTML =
+        `
+          <div style="margin: 3px">
+            <table border="1">
+              <thead>
+              <tr style="text-align:left">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Edit button</th>
+                <th>Action button</th>
+              </tr>
+              </thead>
+              <tbody id="authorsTableBody">
+              </tbody>
+            </table>
+          </div>
+        `
+    appendChildToContainer(authorsTable)
+    appendChildToContainer(rootLink)
+
+    fetch('http://localhost:8080/api/v1/authors')
+    .then(resp => resp.json())
+    .then(authors => fillAuthorsTable(authors))
+
+    renderCreateAuthorRow()
+  }
+
+  function fillAuthorsTable(authors) {
+    authors.forEach(
+        function (author) {
+          const row = document.createElement("tr")
+          row.setAttribute("id", `author-${author.id}`)
+
+          insertCellIntoRow(row, author.id, `author-${author.id}-id`)
+          insertCellIntoRow(row, author.name, `author-${author.id}-name`)
+          insertCellIntoRow(row, createButton(`editAuthor('${author.id}')`, "edit"), `author-${author.id}-edit`)
+          insertCellIntoRow(row, createButton(`removeAuthor('${author.id}')`, "remove"), `author-${author.id}-remove`)
+
+          document.getElementById("authorsTableBody")
+          .appendChild(row)
+        }
+    )
+  }
+
+  function renderCreateAuthorRow() {
+    const row = document.createElement("tr")
+    row.setAttribute("id", `author-new`)
+
+    insertCellIntoRow(row, '&lt;generated&gt;', "author-new-id")
+    insertCellIntoRow(row, '<input id="author-new-name-value" type="text" value="">', "author-new-name")
+    insertCellIntoRow(row, '', "")
+    insertCellIntoRow(row, createButton(`createAuthor()`, 'create'), "author-new-create")
+
+    document.getElementById("authorsTableBody")
+    .appendChild(row)
+  }
+
+  async function createAuthor() {
+    const nameCell = document.getElementById("author-new-name")
+    const newName = document.getElementById("author-new-name-value").value
+    if (!newName) {
+      if (nameCell.children.length < 2) {
+        appendErrorMsg(nameCell, 'Name must not be empty!')
+      }
+      return
+    }
+    const res = await fetch(
+        `http://localhost:8080/api/v1/authors`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({name: newName})})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      authorsPage()
+    }
+  }
+
+  async function removeAuthor(id) {
+    const res = await fetch(`http://localhost:8080/api/v1/authors/${id}`, {method: 'DELETE'})
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      document.getElementById(`author-${id}`).remove()
+    }
+  }
+
+  async function saveEditedAuthor(id) {
+    const nameCell = document.getElementById(`author-${id}-name`)
+    const inputName = nameCell.children[0].value
+    if (!inputName) {
+      if (nameCell.children.length < 2) {
+        appendErrorMsg(nameCell, 'Name must not be empty!')
+      }
+      return
+    }
+    const res = await fetch(
+        `http://localhost:8080/api/v1/authors`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({id: id, name: inputName})})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      nameCell.innerHTML = inputName
+      const saveButton = document.getElementById(`author-${id}-edit`)
+      saveButton.innerHTML = createButton(`editAuthor(\'${id}\')`, "edit")
+    }
+  }
+
+  async function editAuthor(id) {
+    const authorNameCell = document.getElementById(`author-${id}-name`)
+    let currentName = authorNameCell.textContent
+    authorNameCell.innerHTML =
+        `
+        <input type="text" value="${currentName}">
+        `
+
+    const editButton = document.getElementById(`author-${id}-edit`)
+    editButton.innerHTML = createButton(`saveEditedAuthor(\'${id}\')`, "save")
+  }
+</script>
+<script>
+  function genresPage() {
+    cleanContainer()
+    changeTitle("Genres")
+    changeHeader("Genres list")
+
+    const genresTable = document.createElement("div")
+    genresTable.innerHTML =
+        `
+          <div style="margin: 3px">
+            <table border="1">
+              <thead>
+              <tr style="text-align:left">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Edit button</th>
+                <th>Action button</th>
+              </tr>
+              </thead>
+              <tbody id="genresTableBody">
+              </tbody>
+            </table>
+          </div>
+        `
+    appendChildToContainer(genresTable)
+    appendChildToContainer(rootLink)
+
+    fetch('http://localhost:8080/api/v1/genres')
+    .then(resp => resp.json())
+    .then(genres => fillGenresTable(genres))
+
+    renderCreateGenreRow()
+  }
+
+  function fillGenresTable(genres) {
+    genres.forEach(
+        function (genre) {
+          const row = document.createElement("tr")
+          row.setAttribute("id", `genre-${genre.id}`)
+
+          insertCellIntoRow(row, genre.id, `genre-${genre.id}-id`)
+          insertCellIntoRow(row, genre.name, `genre-${genre.id}-name`)
+          insertCellIntoRow(row, createButton(`editGenre('${genre.id}')`, "edit"), `genre-${genre.id}-edit`)
+          insertCellIntoRow(row, createButton(`removeGenre('${genre.id}')`, "remove"), `genre-${genre.id}-remove`)
+
+          document.getElementById("genresTableBody")
+          .appendChild(row)
+        }
+    )
+  }
+
+  function renderCreateGenreRow() {
+    const row = document.createElement("tr")
+    row.setAttribute("id", `genre-new`)
+
+    insertCellIntoRow(row, '&lt;generated&gt;', "genre-new-id")
+    insertCellIntoRow(row, '<input id="genre-new-name-value" type="text" value="">', "genre-new-name")
+    insertCellIntoRow(row, '', "")
+    insertCellIntoRow(row, createButton(`createGenre()`, 'create'), "genre-new-create")
+
+    document.getElementById("genresTableBody")
+    .appendChild(row)
+  }
+
+  async function createGenre() {
+    const nameCell = document.getElementById("genre-new-name")
+    const newName = document.getElementById("genre-new-name-value").value
+    if (!newName) {
+      if (nameCell.children.length < 2) {
+        appendErrorMsg(nameCell, 'Name must not be empty!')
+      }
+      return
+    }
+    const res = await fetch(
+        `http://localhost:8080/api/v1/genres`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({name: newName})})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      genresPage()
+    }
+  }
+
+  async function removeGenre(id) {
+    const res = await fetch(`http://localhost:8080/api/v1/genres/${id}`, {method: 'DELETE'})
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      document.getElementById(`genre-${id}`).remove()
+    }
+  }
+
+  async function saveEditedGenre(id) {
+    const nameCell = document.getElementById(`genre-${id}-name`)
+    const inputName = nameCell.children[0].value
+    if (!inputName) {
+      if (nameCell.children.length < 2) {
+        appendErrorMsg(nameCell, 'Name must not be empty!')
+      }
+      return
+    }
+    const res = await fetch(
+        `http://localhost:8080/api/v1/genres`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({id: id, name: inputName})})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      nameCell.innerHTML = inputName
+      const saveButton = document.getElementById(`genre-${id}-edit`)
+      saveButton.innerHTML = createButton(`editGenre(\'${id}\')`, "edit")
+    }
+  }
+
+  async function editGenre(id) {
+    const genreNameCell = document.getElementById(`genre-${id}-name`)
+    let currentName = genreNameCell.textContent
+    genreNameCell.innerHTML =
+        `
+        <input type="text" value="${currentName}">
+        `
+
+    const editButton = document.getElementById(`genre-${id}-edit`)
+    editButton.innerHTML = createButton(`saveEditedGenre(\'${id}\')`, "save")
+  }
+</script>
+<script>
+  function booksPage() {
+    cleanContainer()
+    changeTitle("Books")
+    changeHeader("Book list")
+
+    const booksTable = document.createElement("div")
+    booksTable.innerHTML =
+        `
+          <div style="margin: 3px">
+            <table border="1">
+              <thead>
+              <tr style="text-align:left">
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Author</th>
+                <th>Genre</th>
+                <th>Edit button</th>
+                <th>Action button</th>
+              </tr>
+              </thead>
+              <tbody id="booksTableBody">
+              </tbody>
+            </table>
+          </div>
+        `
+    appendChildToContainer(booksTable)
+    appendChildToContainer(rootLink)
+
+    fetch('http://localhost:8080/api/v1/books')
+    .then(resp => resp.json())
+    .then(books => fillBooksTable(books))
+
+    renderCreateBookRow()
+  }
+
+  function fillBooksTable(books) {
+    books.forEach(
+        function (book) {
+          const row = document.createElement("tr")
+          row.setAttribute("id", `book-${book.id}`)
+
+          insertCellIntoRow(row, wrapToClickableSpan(book.id, book.id), `book-${book.id}-id`)
+          insertCellIntoRow(row, book.title, `book-${book.id}-title`)
+          insertCellIntoRow(row, book.description, `book-${book.id}-description`)
+          insertCellIntoRow(row, book.author.name, `book-${book.id}-author`)
+          insertCellIntoRow(row, book.genre.name, `book-${book.id}-genre`)
+          insertCellIntoRow(row, createButton(`editBook('${book.id}')`, "edit"), `book-${book.id}-edit`)
+          insertCellIntoRow(row, createButton(`removeBook('${book.id}')`, "remove"), `book-${book.id}-remove`)
+
+          document.getElementById("booksTableBody")
+          .appendChild(row)
+        }
+    )
+  }
+
+  function wrapToClickableSpan(text, bookId) {
+    const spanNode = document.createElement("span")
+    spanNode.innerHTML = text
+    spanNode.setAttribute("style", "color:blue;font-weight:bold;")
+    spanNode.setAttribute('onclick', `bookPage('${bookId}')`)
+    return spanNode.outerHTML
+  }
+
+  async function loadGenreNames() {
+    const resp = await fetch('http://localhost:8080/api/v1/genres')
+    if (resp.status !== 200) {
+      cleanContainer()
+      renderError(await resp.text())
+    } else {
+      const jsonResp = await resp.json()
+      return jsonResp.map(genre => genre.name)
+    }
+  }
+
+  async function loadAuthorNames() {
+    const resp = await fetch('http://localhost:8080/api/v1/authors')
+    if (resp.status !== 200) {
+      cleanContainer()
+      renderError(await resp.text())
+    } else {
+      const jsonResp = await resp.json()
+      return jsonResp.map(author => author.name)
+    }
+  }
+
+  function renderCreateBookRow() {
+    const row = document.createElement("tr")
+    row.setAttribute("id", `book-new`)
+
+    insertCellIntoRow(row, '&lt;generated&gt;', "book-new-id")
+    insertCellIntoRow(row, '<input id="book-new-title-value" type="text" value="">', "book-new-title")
+    insertCellIntoRow(row, '<input id="book-new-description-value" type="text" value="">', "book-new-description")
+    insertCellIntoRow(row, '<input id="book-new-author-value" type="text" value="">', "book-new-author")
+    insertCellIntoRow(row, '<input id="book-new-genre-value" type="text" value="">', "book-new-genre")
+    // insertCellIntoRow(row, createDropdownList("author", loadAuthorNames()), "book-new-author")
+    // insertCellIntoRow(row, createDropdownList("genre", loadGenreNames()), "book-new-genre")
+    insertCellIntoRow(row, '', "")
+    insertCellIntoRow(row, createButton(`createBook()`, 'create'), "book-new-create")
+
+    document.getElementById("booksTableBody")
+    .appendChild(row)
+  }
+
+  async function createBook() {
+    const titleCell = document.getElementById("book-new-title")
+    const newTitle = document.getElementById("book-new-title-value").value
+    if (!newTitle) {
+      appendErrorIfNotExists(titleCell, "title")
+      return
+    }
+    const descriptionCell = document.getElementById("book-new-description")
+    const newDescription = document.getElementById("book-new-description-value").value
+    if (!newDescription) {
+      appendErrorIfNotExists(descriptionCell, "description")
+      return
+    }
+
+    const authorCell = document.getElementById("book-new-author")
+    const newBookAuthor = document.getElementById("book-new-author-value").value
+    if (!newBookAuthor) {
+      appendErrorIfNotExists(authorCell, "author")
+      return
+    }
+
+    const genreCell = document.getElementById("book-new-genre")
+    const newBookGenre = document.getElementById("book-new-genre-value").value
+    if (!newBookGenre) {
+      appendErrorIfNotExists(genreCell, "genre")
+      return
+    }
+
+    const res = await fetch(
+        `http://localhost:8080/api/v1/books`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(
+              {
+                title: newTitle,
+                description: newDescription,
+                author: newBookAuthor,
+                genre: newBookGenre
+              }
+          )})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      booksPage()
+    }
+  }
+
+  async function removeBook(id) {
+    const res = await fetch(`http://localhost:8080/api/v1/books/${id}`, {method: 'DELETE'})
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      document.getElementById(`book-${id}`).remove()
+    }
+  }
+
+  async function saveEditedBook(id) {
+    const titleCell = document.getElementById(`book-${id}-title`)
+    const inputTitle = titleCell.children[0].value
+    if (!inputTitle) {
+      appendErrorIfNotExists(titleCell, "title")
+      return
+    }
+
+    const descriptionCell = document.getElementById(`book-${id}-description`)
+    const inputDescription = descriptionCell.children[0].value
+    if (!inputDescription) {
+      appendErrorIfNotExists(descriptionCell, "description")
+      return
+    }
+
+    const authorCell = document.getElementById(`book-${id}-author`)
+    const inputAuthor = authorCell.children[0].value
+    if (!inputAuthor) {
+      appendErrorIfNotExists(authorCell, "author")
+      return
+    }
+
+    const genreCell = document.getElementById(`book-${id}-genre`)
+    const inputGenre = genreCell.children[0].value
+    if (!inputGenre) {
+      appendErrorIfNotExists(genreCell, "genre")
+      return
+    }
+    const res = await fetch(
+        `http://localhost:8080/api/v1/books`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(
+              {
+                id: id,
+                title: inputTitle,
+                description: inputDescription,
+                author: inputAuthor,
+                genre: inputGenre
+              })})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      titleCell.innerHTML = inputTitle
+      descriptionCell.innerHTML = inputDescription
+      authorCell.innerHTML = inputAuthor
+      genreCell.innerHTML = inputGenre
+
+      const saveButton = document.getElementById(`book-${id}-edit`)
+      saveButton.innerHTML = createButton(`editBook(\'${id}\')`, "edit")
+    }
+  }
+
+  function editBook(id) {
+    const bookTitleCell = document.getElementById(`book-${id}-title`)
+    let currentTitle = bookTitleCell.textContent
+    bookTitleCell.innerHTML =
+        `
+        <input type="text" value="${currentTitle}">
+        `
+    const bookDescriptionCell = document.getElementById(`book-${id}-description`)
+    let currentDescription = bookDescriptionCell.textContent
+    bookDescriptionCell.innerHTML =
+        `
+        <input type="text" value="${currentDescription}">
+        `
+
+    const bookAuthorCell = document.getElementById(`book-${id}-author`)
+    let currentAuthor = bookAuthorCell.textContent
+    bookAuthorCell.innerHTML =
+        `
+        <input type="text" value="${currentAuthor}">
+        `
+
+    const bookGenreCell = document.getElementById(`book-${id}-genre`)
+    let currentGenre = bookGenreCell.textContent
+    bookGenreCell.innerHTML =
+        `
+        <input type="text" value="${currentGenre}">
+        `
+
+    const editButton = document.getElementById(`book-${id}-edit`)
+    editButton.innerHTML = createButton(`saveEditedBook(\'${id}\')`, "save")
+  }
+</script>
+<script>
+  function bookPage(id) {
+    cleanContainer()
+    changeTitle("Book")
+    changeHeader("Book info")
+
+    const bookTable = document.createElement("div")
+    bookTable.innerHTML =
+        `
+              <h4>Book info</h4>
+              <table border="1">
+                <thead>
+                <tr>
+                  <th>id</th>
+                  <th>title</th>
+                  <th>description</th>
+                  <th>author</th>
+                  <th>genre</th>
+                </tr>
+                </thead>
+                <tbody id="bookTableBody">
+                </tbody>
+              </table>
+              `
+
+    const commentsTable = document.createElement("div")
+    commentsTable.innerHTML =
+        `
+              <h4>Book comments</h4>
+              <table border="1">
+                <thead>
+                <tr>
+                  <th>id</th>
+                  <th>user</th>
+                  <th>comment</th>
+                  <th>edit link</th>
+                  <th>action button</th>
+                </tr>
+                </thead>
+                <tbody id="commentsTableBody">
+                </tbody>
+              </table>
+              `
+
+    appendChildToContainer(bookTable)
+    appendChildToContainer(commentsTable)
+    appendChildToContainer(rootLink)
+
+    renderCreateCommentRow(id)
+
+    getBook(id)
+    .then(
+        book => {
+          const row = document.createElement("tr")
+          row.setAttribute("id", `book-id`)
+
+          insertCellIntoRow(row, book.id, "book-id")
+          insertCellIntoRow(row, book.title, "book-title")
+          insertCellIntoRow(row, book.description, "book-description")
+          insertCellIntoRow(row, book.author.name, "book-author")
+          insertCellIntoRow(row, book.genre.name, "book-genre")
+
+          document.getElementById("bookTableBody")
+          .appendChild(row)
+
+          fillCommentsTable(book)
+        }
+    )
+  }
+
+  function fillCommentsTable(book) {
+    const comments = book.comments
+    comments.forEach(
+        function (comment) {
+          const row = document.createElement("tr")
+          row.setAttribute("id", `comment-${comment.id}`)
+
+          insertCellIntoRow(row, comment.id, `comment-${comment.id}-id`)
+          insertCellIntoRow(row, comment.userName, `comment-${comment.id}-userName`)
+          insertCellIntoRow(row, comment.text, `comment-${comment.id}-text`)
+          insertCellIntoRow(row, createButton(`editComment('${book.id}', '${comment.id}')`, "edit"), `comment-${comment.id}-edit`)
+          insertCellIntoRow(row, createButton(`removeComment('${book.id}', '${comment.id}')`, "remove"), `comment-${comment.id}-remove`)
+
+          document.getElementById("commentsTableBody")
+          .appendChild(row)
+        }
+    )
+  }
+
+  async function getBook(id) {
+    const resp = await fetch('http://localhost:8080/api/v1/books/' + id)
+    if (resp.status !== 200) {
+      cleanContainer()
+      renderError(await resp.text())
+    } else {
+      return await resp.json()
+    }
+  }
+
+  function renderCreateCommentRow(bookId) {
+    const row = document.createElement("tr")
+    row.setAttribute("id", `comment-new`)
+
+    insertCellIntoRow(row, '&lt;generated&gt;', "comment-new-id")
+    insertCellIntoRow(row, '<input id="comment-new-userName-value" type="text" value="">', "comment-new-userName")
+    insertCellIntoRow(row, '<input id="comment-new-text-value" type="text" value="">', "comment-new-text")
+    insertCellIntoRow(row, '', "")
+    insertCellIntoRow(row, createButton(`saveComment('${bookId}')`, 'create'), "comment-new-create")
+
+    document.getElementById("commentsTableBody")
+    .appendChild(row)
+  }
+
+  async function saveComment(bookId) {
+    const userNameCell = document.getElementById("comment-new-userName")
+    const newUserName = document.getElementById("comment-new-userName-value").value
+    if (!newUserName) {
+      appendErrorIfNotExists(userNameCell, "userName")
+      return
+    }
+    const textCell = document.getElementById("comment-new-text")
+    const newText = document.getElementById("comment-new-text-value").value
+    if (!newText) {
+      appendErrorIfNotExists(textCell, "text")
+      return
+    }
+
+    const res = await fetch(
+        `http://localhost:8080/api/v1/books/${bookId}/comments`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(
+              {
+                text: newText,
+                userName: newUserName
+              }
+          )})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      bookPage(bookId)
+    }
+  }
+
+  async function removeComment(bookId, id) {
+    const res = await fetch(`http://localhost:8080/api/v1/books/${bookId}/comments/${id}`, {method: 'DELETE'})
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      document.getElementById(`comment-${id}`).remove()
+    }
+  }
+
+  async function saveEditedComment(bookId, id) {
+    const userNameCell = document.getElementById(`comment-${id}-userName`)
+    const inputUserName = userNameCell.children[0].value
+    if (!inputUserName) {
+      appendErrorIfNotExists(userNameCell, "userName")
+      return
+    }
+
+    const textCell = document.getElementById(`comment-${id}-text`)
+    const inputText = textCell.children[0].value
+    if (!inputText) {
+      appendErrorIfNotExists(textCell, "text")
+      return
+    }
+
+    const res = await fetch(
+        `http://localhost:8080/api/v1/books/${bookId}/comments/${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(
+              {
+                id: id,
+                text: inputText,
+                userName: inputUserName,
+              })})
+
+    if (res.status !== 200) {
+      cleanContainer()
+      renderError(await res.text())
+    } else {
+      userNameCell.innerHTML = inputUserName
+      textCell.innerHTML = inputText
+
+      const saveButton = document.getElementById(`comment-${id}-edit`)
+      saveButton.innerHTML = createButton(`editComment('${bookId}', '${id}')`, "edit")
+    }
+  }
+
+  function editComment(bookId, id) {
+    const commentUserCell = document.getElementById(`comment-${id}-userName`)
+    let currentUser = commentUserCell.textContent
+    commentUserCell.innerHTML =
+        `
+        <input type="text" value="${currentUser}">
+        `
+    const commentTextCell = document.getElementById(`comment-${id}-text`)
+    let currentText = commentTextCell.textContent
+    commentTextCell.innerHTML =
+        `
+        <input type="text" value="${currentText}">
+        `
+
+    const editButton = document.getElementById(`comment-${id}-edit`)
+    editButton.innerHTML = createButton(`saveEditedComment('${bookId}', '${id}')`, "save")
+  }
+
+</script>
 </html>

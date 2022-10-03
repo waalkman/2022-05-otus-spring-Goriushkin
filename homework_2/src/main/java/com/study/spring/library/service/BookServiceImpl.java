@@ -6,9 +6,10 @@ import com.study.spring.library.dao.GenreDao;
 import com.study.spring.library.domain.Book;
 import com.study.spring.library.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -19,50 +20,45 @@ public class BookServiceImpl implements BookService {
   private final GenreDao genreDao;
 
   @Override
-  public Collection<Book> getAll() {
+  public Flux<Book> findAll() {
     return bookDao.findAll();
   }
 
   @Override
-  public Book create(Book book, String genre, String author) {
-    checkAuthorAndGenre(book, genre, author);
+  public Mono<Book> create(Book book, String genre, String author) {
     book.setComments(new ArrayList<>());
-    return bookDao.save(book);
+    return checkAuthorAndGenre(book, genre, author)
+        .then(bookDao.save(book));
   }
 
   @Override
-  public Book findById(String id) {
-    return bookDao.findById(id)
-                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
+  public Mono<Book> findById(String id) {
+    return bookDao.findById(id);
   }
 
   @Override
-  public Book findByTitle(String title) {
-    return bookDao.findByTitle(title)
-                  .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
+  public Mono<Book> findByTitle(String title) {
+    return bookDao.findByTitle(title);
   }
 
   @Override
-  public void update(Book book, String genre, String author) {
-    Book currentBook = bookDao.findById(book.getId())
-                              .orElseThrow(() -> new EntityNotFoundException("Book not found", "Book"));
-
-    checkAuthorAndGenre(book, genre, author);
-    currentBook.setTitle(book.getTitle());
-    currentBook.setDescription(book.getDescription());
-    currentBook.setAuthor(book.getAuthor());
-    currentBook.setGenre(book.getGenre());
-
-    bookDao.save(currentBook);
+  public Mono<Book> update(Book book, String genre, String author) {
+    return checkAuthorAndGenre(book, genre, author)
+        .then(bookDao.save(book));
   }
 
   @Override
-  public void deleteById(String id) {
-    bookDao.deleteById(id);
+  public Mono<Void> deleteById(String id) {
+    return bookDao.deleteById(id);
   }
 
-  private void checkAuthorAndGenre(Book book, String genre, String author) {
-    book.setGenre(genreDao.findByName(genre).orElseThrow(() -> new EntityNotFoundException("Genre not found", "Genre")));
-    book.setAuthor(authorDao.findByName(author).orElseThrow(() -> new EntityNotFoundException("Author not found", "Author")));
+  private Mono<Void> checkAuthorAndGenre(Book book, String genreName, String authorName) {
+    return genreDao.findByName(genreName)
+                   .switchIfEmpty(Mono.error(new EntityNotFoundException("Genre not found", "Genre")))
+                   .doOnNext(book::setGenre)
+                   .then(authorDao.findByName(authorName)
+                                 .switchIfEmpty(Mono.error(new EntityNotFoundException("Author not found", "Author")))
+                                 .doOnNext(book::setAuthor))
+                   .then();
   }
 }

@@ -1,11 +1,12 @@
 package com.study.spring.library.dao;
 
 import com.study.spring.library.domain.Author;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import reactor.core.publisher.Mono;
 
-public interface AuthorDao extends MongoRepository<Author, String> {
+public interface AuthorDao extends ReactiveMongoRepository<Author, String> {
 
-  Optional<Author> findByName(String name);
+  Mono<Author> findByName(String name);
+  Mono<Boolean> existsByName(String name);
 
 }
