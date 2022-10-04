@@ -4,5 +4,16 @@ services:
   db:
     image: mongo
     restart: always
+    networks:
+      - net
+  app:
+    image: library:1.0
+    restart: always
+    depends_on:
+      - db
     ports:
-      - "27017:27017"
+      - "8080:8080"
+    networks:
+      - net
+networks:
+  net: {}

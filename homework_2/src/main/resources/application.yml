@@ -2,7 +2,7 @@ spring:
   data:
     mongodb:
       database: library
-      host: localhost
+      host: db
       port: 27017
     rest:
       base-path: /wow
