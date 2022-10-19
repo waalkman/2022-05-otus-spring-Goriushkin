@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.springframework.boot' version '2.7.2'
+}
+
+group 'com.spring.study.turbine'
+version '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-turbine'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR1'
+        mavenBom 'org.springframework.boot:spring-boot-starter-parent:2.1.5.RELEASE'
+    }
+}

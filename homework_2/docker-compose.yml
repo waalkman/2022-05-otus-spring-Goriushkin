@@ -6,6 +6,8 @@ services:
     restart: always
     networks:
       - net
+    ports:
+      - "27017:27017"
   app:
     image: library:1.0
     restart: always

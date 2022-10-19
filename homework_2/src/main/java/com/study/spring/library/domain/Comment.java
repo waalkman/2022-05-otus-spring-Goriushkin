@@ -15,7 +15,7 @@ public class Comment {
 
   private String id = new ObjectId().toString();
   private String text;
-  @Field(name = "user_name")
+  @Field(value = "user_name")
   private String userName;
 
   public Comment copy() {

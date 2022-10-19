@@ -1,23 +1,23 @@
 spring:
+  application:
+    name: library
   data:
     mongodb:
       database: library
-      host: db
+      host: localhost
       port: 27017
     rest:
       base-path: /wow
   jackson:
     serialization:
       INDENT_OUTPUT: true
+server:
+  port: 8081
 management:
   endpoints:
     web:
       exposure:
-        include:
-          - "health"
-          - "logfile"
-          - "metrics"
-          - "prometheus"
+        include: '*'
   endpoint:
     logfile:
       external-file: log/log.log
@@ -38,3 +38,16 @@ mongock:
   runner-type: "InitializingBean"
   migration-scan-package:
     - com.study.spring.library.changelog
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8001/eureka
+  instance:
+    leaseRenewalIntervalInSeconds: 30
+    leaseExpirationDurationInSeconds: 90
+    instance-id: ${spring.application.name}':'${server.port}
+    prefer-ip-address: true
+
